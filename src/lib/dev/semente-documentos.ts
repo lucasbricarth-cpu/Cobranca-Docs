@@ -3,6 +3,7 @@ import { registrarEnvio } from '@/lib/documentos/registrar';
 import { rodarFila } from '@/lib/fila';
 import { pdfDemo, fotoDemo, xmlNfeDemo } from './demo-arquivos';
 import { competenciaPadrao, somarMeses } from '@/lib/tempo';
+import { criarPedido } from '@/lib/pedidos';
 
 /**
  * Documentos e itens de demonstração (só desenvolvimento e capturas):
@@ -70,5 +71,11 @@ export async function semearDocumentos() {
   await q(`INSERT INTO avisos (item_id, login_id, canal, etapa, destino, texto, enviado_em) VALUES ($1, $2, 'email', 'lembrete_3dias', 'carlos@padaria.com.br', 'Um pedido do escritório vence em 3 dias.', $3)
            ON CONFLICT ON CONSTRAINT aviso_unico DO NOTHING`, [iSic, login, `${somarMeses(mes, 1).slice(0, 8)}02 08:00-03`]);
   void iFolha; void iCartao;
+  // Um pedido avulso para a carteira toda (os itens que já existiam não duplicam).
+  const admin = (await um<{ id: string }>(`SELECT id FROM usuarios WHERE papel = 'admin' ORDER BY criado_em LIMIT 1`))!.id;
+  const ja = await um(`SELECT 1 FROM pedidos WHERE origem = 'avulso' AND competencia = $1 AND tipo_id = $2`, [mes, tipo['Extrato bancário']]);
+  if (!ja) await criarPedido({ empresaIds: Object.values(emp), tipoId: tipo['Extrato bancário'], subtipos: 'todos', competencia: mes, prazo, mensagem: 'Extratos de todas as contas, por favor.', origem: 'avulso', criadoPor: admin });
+  const ja2 = await um(`SELECT 1 FROM pedidos WHERE origem = 'avulso' AND competencia = $1 AND tipo_id = $2`, [mes, tipo['Notas fiscais de entrada']]);
+  if (!ja2) await criarPedido({ empresaIds: Object.values(emp), tipoId: tipo['Notas fiscais de entrada'], subtipos: 'todos', competencia: mes, prazo: prazoVencido, origem: 'avulso', criadoPor: admin });
   return { mes, documentos: Object.keys(docs).length };
 }

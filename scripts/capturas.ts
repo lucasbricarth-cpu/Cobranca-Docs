@@ -72,6 +72,10 @@ async function resolver(rota: string): Promise<string> {
     const d = await banco.query<{ id: string }>('SELECT id FROM tipos_documento WHERE nome ILIKE $1 LIMIT 1', [`${t[1]}%`]);
     r = r.replace(t[0], d.rows[0]?.id ?? 'x');
   }
+  if (r.includes('{pedido}')) {
+    const d = await banco.query<{ id: string }>('SELECT id FROM pedidos ORDER BY criado_em DESC LIMIT 1');
+    r = r.replace('{pedido}', d.rows[0]?.id ?? 'x');
+  }
   // {doc:...} = id do primeiro documento cujo nome original contém o texto.
   const m = r.match(/\{doc:([^}]+)\}/);
   if (m) {
@@ -80,7 +84,7 @@ async function resolver(rota: string): Promise<string> {
   }
   return r;
 }
-const nomeDaRota = (rota: string) => rota.replace(/\{(\d+)\}/g, 'e$1').replace(/\{doc:[^}]+\}/g, 'doc').replace(/\{tipo:([^}]+)\}/g, '$1').replace(/ /g, '_').replace(/[?&=]/g, '-').replace(/\//g, '-');
+const nomeDaRota = (rota: string) => rota.replace(/\{(\d+)\}/g, 'e$1').replace(/\{doc:[^}]+\}/g, 'doc').replace(/\{tipo:([^}]+)\}/g, '$1').replace('{pedido}', 'pedido').replace(/ /g, '_').replace(/[?&=]/g, '-').replace(/\//g, '-');
 const PAGINAS_FUNC = (process.env.CAPTURAS_FUNC || '/inicio,/ajustes/estetica').split(',');
 const PAGINAS_CLI = (process.env.CAPTURAS_CLI || '/cliente').split(',');
 const ADMIN = 'ana@escritorio.com.br';
