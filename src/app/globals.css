@@ -1,0 +1,1944 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ═══════════════════════════════════════════════════════════════════════
+   Portal de Documentos — Glass Dourado.
+   Fonte: handoff_estetica_app (tokens, fundo, movimento, primitivos e
+   seletor de paletas copiados da referência). O bloco das paletas entre
+   PALETAS:INICIO/FIM é gerado por `npm run paletas` de src/lib/paletas.ts.
+   O ESCURO é o tema padrão deste app (prompt §0); os tokens continuam em
+   :root (claro) e .dark (escuro), como no handoff — só o defaultTheme muda.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* Typography */
+  --sans: var(--font-inter), Inter, system-ui, -apple-system, sans-serif;
+  --serif: var(--font-merriweather), Merriweather, Georgia, "Times New Roman", serif;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+
+  /* ── Glass Dourado — tema CLARO (docs/design/glass-dourado/README.md §4.2) ──
+     Mapeamento de tema: o handoff escreve o escuro em :root e o claro em
+     .light; este app faz o inverso (:root claro, .dark escuro — o next-themes
+     põe a classe `dark` no <html> e o Tailwind está em darkMode:"class").
+     Os VALORES são os do handoff; só o seletor que os carrega é diferente. */
+  --base:       #EEE7D8;
+  --base-rgb: 238 231 216;
+  --bg:         #EEE7D8;   /* = --base; o fundo visível é a camada animada (AppBackground) */
+
+  --fg:    #1F1B14;
+  --fg-2:  #2C281E;
+  --fg-3:  #524C3B;
+  --fg-4:  #665A45;
+
+  /* Cor de destaque (padrão: Dourado). É o ÚNICO lugar do app com a cor
+     escrita; tudo o mais lê estes tokens. As paletas (Estética do App)
+     redefinem este bloco por tema. Valores sempre já calculados, em hex ou
+     rgb: nada de color-mix/oklch (o exportToPDF usa html2canvas 1.4.1). */
+  --destaque:        #957832;
+  --destaque-text:   #6C5624;
+  --destaque-glow:   rgba(149, 120, 50, 0.13);
+  --destaque-line:   rgba(149, 120, 50, 0.36);
+  --on-destaque:     #1c1709;   /* texto sobre a cor de destaque (CTA, selo) */
+  /* Canais do dourado "puro" para alfas: rgb(var(--destaque-rgb) / 0.3) no
+     CSS e bg-destaque/30 no Tailwind. Igual nos dois temas, como os valores
+     que antes estavam escritos à mão. */
+  --destaque-rgb:        149 120 50;   /* = --destaque (tematizado) */
+  --primary: 42 50% 39%;   /* trios HSL (anel de foco e componentes que leem hsl(var(--ring))) */
+  --ring:    42 50% 39%;
+  --destaque-2-rgb:      184 152 80;   /* #B89850 — degradês e hover */
+  --destaque-3-rgb:      167 135 64;   /* #A78740 — fim do hover */
+  --destaque-claro-rgb:  212 183 117;  /* #D4B775 */
+  --destaque-escuro-rgb: 138 111 48;   /* #8A6F30 */
+  /* Séries dos gráficos (QuotasPieChart): um tom por sócio. */
+  --destaque-serie-1: #C9A961;
+  --destaque-serie-2: #8A6F30;
+  --destaque-serie-3: #E2CB92;
+  --destaque-serie-4: #B08D4F;
+  --destaque-serie-5: #D4B775;
+  --destaque-serie-6: #6E5726;
+  /* Apelidos de transição: o código antigo lê --gold-*; os valores vêm dos
+     tokens de destaque. Novos usos devem ler --destaque-*. */
+  --gold:       var(--destaque);
+  --gold-text:  var(--destaque-text);
+  --gold-glow:  var(--destaque-glow);
+  --gold-line:  var(--destaque-line);
+  --on-gold:    var(--on-destaque);
+
+  --ok:      #2F9F5E;
+  --ok-soft: rgba(47, 159, 94, 0.12);
+  --warn:    #B87512;
+  --info:    #2F6CB6;
+  --danger:  #C03A3A;
+  /* Cor de TEXTO das semânticas: mais escura que o ícone/ponto, para passar
+     no contraste sobre vidro claro. No escuro é a própria cor. */
+  --ok-text:     #1F7040;
+  --warn-text:   #86540A;
+  --info-text:   #25589A;
+  --danger-text: #A83232;
+
+  /* Vidro — três níveis: Painel (--glass, com blur), Cartão (--glass-2, sem
+     blur) e Ativo/hover (--glass-3). --glass-solid é o fallback opaco. */
+  --glass:       linear-gradient(var(--glass-veil), var(--glass-veil)), linear-gradient(var(--glass-frost), var(--glass-frost)), linear-gradient(155deg, rgba(255,255,255,0.74) 0%, rgba(255,255,255,0.44) 45%, rgba(255,250,240,0.32) 100%);
+  --glass-2:     rgba(255, 255, 255, 0.42);
+  --glass-3:     rgba(255, 255, 255, 0.75);
+  --glass-solid: #F7F3EA;
+  --gline:       rgba(255, 255, 255, 0.65);
+  --gline-2:     rgba(120, 96, 50, 0.12);
+  --ghl:         inset 0 1px 0 rgba(255,255,255,0.9), 0 0 0 0.5px rgba(120,96,50,0.12);
+  --gshadow:     0 1px 2px rgba(90,70,30,0.06), 0 14px 36px -16px rgba(90,70,30,0.16);
+  /* Estética do App: véu (transparência do vidro) e camada fosca (intensidade),
+     empilhados ANTES do vidro. Transparentes por padrão = vidro puro. */
+  --glass-veil:  transparent;
+  --glass-frost: transparent;
+  --grain:       url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.035'/%3E%3C/svg%3E");
+  --blur:        10px;   /* Sutil */
+
+  /* Botões */
+  --btn-bg:    linear-gradient(180deg, rgba(255,255,255,0.72), rgba(255,255,255,0.36));
+  --cta:       linear-gradient(90deg, #B8964F, #A3833D);
+  --cta-hover: linear-gradient(90deg, #C4A35C, #B39150);
+
+  /* Fundo animado. --gi (intensidade do dourado) e --bg-speed (velocidade)
+     são os padrões do app para o primeiro paint; Estética do App sobrescreve
+     no <html>. O padrão do dourado é 50% (PREFS_PADRAO em lib/backgroundPrefs). */
+  --gi:       0.5;
+  --bg-speed: 2;
+  --orb1: rgba(211, 185, 124, calc(0.8 * var(--gi)));
+  --orb3: rgba(206, 182, 126, calc(0.62 * var(--gi)));
+  --orb1-rgb: 211 185 124;
+  --orb3-rgb: 206 182 126;
+  --orb2: rgba(150, 148, 142, 0.55);
+  --gmid: rgba(150, 148, 142, 0.55);
+  --orb4: #A9A59C;
+
+  /* Movimento */
+  --ease:        cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --t-fast: 120ms;
+  --t-base: 200ms;
+  --t-slow: 320ms;
+
+  /* Compatibilidade: dezenas de componentes ainda leem estes nomes. Removê-los
+     quebraria telas que o handoff nem cita, então eles apontam para o vidro. */
+  --line:      var(--gline-2);
+  --line-soft: rgba(120, 96, 50, 0.08);
+  --line-2:    rgba(120, 96, 50, 0.18);
+  --bg-elev-1: var(--glass-2);
+  --bg-elev-2: var(--glass-2);
+  --bg-elev-3: var(--glass-3);
+}
+
+.dark {
+  /* ── Glass Dourado — tema ESCURO (padrão do app; README §4.1) ── */
+  --base: #0F0E0C;
+  --base-rgb: 15 14 12;
+  --bg:   #0F0E0C;
+
+  --fg:    #F2EFE7;
+  --fg-2:  #D8D2C6;
+  --fg-3:  #B3AB9C;
+  --fg-4:  #8E877A;
+
+  --destaque:        #C9A961;
+  --destaque-text:   #C9A961;
+  --destaque-glow:   rgba(201, 169, 97, 0.1);
+  --destaque-line:   rgba(201, 169, 97, 0.3);
+  --on-destaque:     #1c1709;
+  --destaque-rgb:    201 169 97;
+  --primary: 42 49% 58%;
+  --ring:    42 49% 58%;
+
+  --ok:      #5DCE7F;
+  --ok-soft: rgba(93, 206, 127, 0.12);
+  --warn:    #E6B450;
+  --info:    #6CA0E6;
+  --danger:  #E66565;
+  --ok-text:     var(--ok);
+  --warn-text:   var(--warn);
+  --info-text:   var(--info);
+  --danger-text: var(--danger);
+
+  --glass:       linear-gradient(var(--glass-veil), var(--glass-veil)), linear-gradient(var(--glass-frost), var(--glass-frost)), linear-gradient(155deg, rgba(255,255,255,0.075) 0%, rgba(255,255,255,0.03) 45%, rgba(18,16,13,0.18) 100%);
+  --glass-2:     rgba(255, 255, 255, 0.045);
+  --glass-3:     rgba(255, 255, 255, 0.09);
+  --glass-solid: #1A1815;
+  --gline:       rgba(255, 255, 255, 0.10);
+  --gline-2:     rgba(255, 255, 255, 0.06);
+  --ghl:         inset 0 1px 0 rgba(255,255,255,0.11), inset 0 0 0 1px rgba(255,255,255,0.015);
+  --gshadow:     0 1px 2px rgba(0,0,0,0.18), 0 16px 40px -16px rgba(0,0,0,0.32);
+  --btn-bg:      linear-gradient(180deg, rgba(255,255,255,0.07), rgba(0,0,0,0.10));
+
+  --orb1: rgba(87, 70, 29, calc(0.55 * var(--gi)));
+  --orb3: rgba(79, 65, 30, calc(0.4 * var(--gi)));
+  --orb1-rgb: 87 70 29;
+  --orb3-rgb: 79 65 30;
+  --orb2: rgba(130, 128, 122, 0.34);
+  --gmid: #23221F;
+  --orb4: #161513;
+
+  --line:      var(--gline);
+  --line-soft: var(--gline-2);
+  --line-2:    rgba(255, 255, 255, 0.14);
+  --bg-elev-1: var(--glass-2);
+  --bg-elev-2: var(--glass-2);
+  --bg-elev-3: var(--glass-3);
+}
+
+/* ── Degradação e acessibilidade (README §6.3) ──
+   Sem backdrop-filter, ou com pedido de mais contraste, o vidro vira uma
+   superfície opaca da mesma família. As classes no <html> são opções de
+   Configurações → Estética do App. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  :root, .dark { --glass: var(--glass-solid); }
+}
+@media (prefers-contrast: more) {
+  :root, .dark { --glass: var(--glass-solid); --gline: var(--fg-4); }
+}
+:root.reduce-transparency {
+  --glass: var(--glass-solid);
+  --glass-2: var(--glass-solid);
+  --blur: 0px;
+}
+/* Anel de foco dourado. Campos de formulário ficam de fora: eles têm a
+   própria receita (borda --gold-line + halo --gold-glow). */
+:focus-visible:not(input):not(textarea):not(select):not([contenteditable="true"]) {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--base), 0 0 0 4px var(--gold-line) !important;
+}
+/* :where() = especificidade zero: um disabled:opacity-60 pontual continua valendo. */
+:where([disabled], [aria-disabled="true"]) {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.app-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  overflow: hidden;
+  background: var(--base);
+}
+.app-bg .bg-grad {
+  position: absolute;
+  inset: -10%;
+  will-change: transform;
+  background: linear-gradient(135deg, var(--orb1) 0%, var(--orb3) 15%, var(--gmid) 36%, var(--orb4) 75%);
+  animation: gdShift calc(40s / var(--bg-speed)) ease-in-out infinite alternate;
+}
+.app-bg .bg-glow {
+  position: absolute;
+  width: 75%;
+  min-width: 420px;
+  aspect-ratio: 1;
+  left: -24%;
+  top: -32%;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--orb1), transparent 65%);
+  filter: blur(40px);
+  opacity: 0.55;
+  will-change: transform;
+  animation: gdGlow calc(34s / var(--bg-speed)) ease-in-out infinite alternate;
+}
+/* Celular (/m e /c): ângulo mais vertical, brilho maior e as cores do
+   README §4.3 — o fundo é irmão do .m-app, não filho, então os tokens do
+   celular que o pintam moram aqui. */
+.app-bg-mobile {
+  --base: #F4EFE6;
+  --base-rgb: 244 239 230;
+  /* Cor das manchas vem da paleta (--orb1-rgb/--orb3-rgb); só o fator é do celular. */
+  --orb1: rgb(var(--orb1-rgb) / calc(0.55 * var(--gi)));
+  --orb3: rgb(var(--orb3-rgb) / calc(0.38 * var(--gi)));
+  --orb2: rgba(214, 208, 196, 0.55);
+  --gmid: #ECE6DB;
+  --orb4: #E2DDD3;
+}
+.dark .app-bg-mobile {
+  --base: #0F0E0C;
+  --base-rgb: 15 14 12;
+  --orb1: rgb(var(--orb1-rgb) / calc(0.38 * var(--gi)));
+  --orb3: rgb(var(--orb3-rgb) / calc(0.28 * var(--gi)));
+  --orb2: rgba(120, 118, 112, 0.30);
+  --gmid: #211F1C;
+  --orb4: #12110F;
+}
+.app-bg-mobile .bg-grad {
+  background: linear-gradient(168deg, var(--orb1) 0%, var(--orb3) 22%, var(--gmid) 52%, var(--orb4) 100%);
+}
+.app-bg-mobile .bg-glow {
+  width: 110%;
+  min-width: 0;
+  left: -45%;
+  top: -35%;
+}
+@keyframes gdShift {
+  0%   { transform: translate3d(0, 0, 0); }
+  50%  { transform: translate3d(-4%, -2%, 0); }
+  100% { transform: translate3d(-1.5%, -5%, 0); }
+}
+@keyframes gdGlow {
+  0%   { transform: translate(-6%, -4%) scale(1); }
+  50%  { transform: translate(8%, 6%) scale(1.15); }
+  100% { transform: translate(2%, 12%) scale(1.05); }
+}
+.app-bg[data-animate="false"] * {
+  animation: none !important;
+}
+/* Manchas (prompt-config-fundo §3): três orbes desfocados que flutuam. */
+.app-bg .bg-orb {
+  position: absolute;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  filter: blur(40px);
+  will-change: transform;
+}
+.app-bg .bg-orb-a {
+  width: 60%; min-width: 380px; left: -15%; top: -20%;
+  background: radial-gradient(circle, var(--orb1), transparent 66%);
+  animation: gdDrift1 calc(38s / var(--bg-speed)) ease-in-out infinite alternate;
+}
+.app-bg .bg-orb-b {
+  width: 70%; min-width: 420px; right: -25%; top: 18%;
+  background: radial-gradient(circle, var(--orb2), transparent 66%);
+  animation: gdDrift2 calc(46s / var(--bg-speed)) ease-in-out infinite alternate;
+}
+.app-bg .bg-orb-c {
+  width: 55%; min-width: 340px; left: 30%; bottom: -30%;
+  background: radial-gradient(circle, var(--orb3), transparent 66%);
+  animation: gdDrift3 calc(54s / var(--bg-speed)) ease-in-out infinite alternate;
+}
+@keyframes gdDrift1 {
+  0%   { transform: translate(0, 0) scale(1); }
+  50%  { transform: translate(12%, 10%) scale(1.12); }
+  100% { transform: translate(-6%, 16%) scale(0.95); }
+}
+@keyframes gdDrift2 {
+  0%   { transform: translate(0, 0) scale(1); }
+  50%  { transform: translate(-14%, -8%) scale(1.1); }
+  100% { transform: translate(-4%, 10%) scale(1.18); }
+}
+@keyframes gdDrift3 {
+  0%   { transform: translate(0, 0) scale(1); }
+  50%  { transform: translate(10%, -14%) scale(0.92); }
+  100% { transform: translate(-12%, -6%) scale(1.08); }
+}
+/* Imagem personalizada: cobre tudo, com o escurecimento e o desfoque do usuário.
+   Sem --img-dim definido vale o padrão por tema (15% claro, 35% escuro). */
+.app-bg .bg-img {
+  position: absolute;
+  inset: -20px;
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  filter: blur(var(--img-blur, 0px));
+}
+.app-bg .bg-dim {
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, var(--img-dim, 0.15));
+}
+.dark .app-bg .bg-dim {
+  background: rgba(0, 0, 0, var(--img-dim, 0.35));
+}
+/* Prévia na tela de configuração: o mesmo fundo dentro de um cartão. */
+.app-bg.app-bg-preview {
+  position: absolute;
+  z-index: 0;
+}
+.app-bg.app-bg-preview .bg-glow,
+.app-bg.app-bg-preview .bg-orb {
+  min-width: 0;
+}
+/* Slider da configuração: thumb e trilho em dourado. */
+.gd-range {
+  width: 100%;
+  height: 22px;
+  accent-color: var(--gold);
+  cursor: pointer;
+  background: transparent;
+}
+.gd-range:disabled {
+  cursor: not-allowed;
+}
+
+:where(button, [role="button"], a[href], .seg-item, .tab, .app-nav-item):where(:not(#contract-document *)) {
+  transition: scale var(--t-fast) var(--ease);
+}
+:where(button, [role="button"], a[href], .seg-item, .tab, .app-nav-item):where(:not(:disabled)):where(:not([aria-disabled="true"])):where(:not(#contract-document *)):active {
+  scale: 0.98;
+}
+.press { transition: scale var(--t-fast) var(--ease); }
+.press:active { scale: 0.98; }
+
+/* gd-rise: conteúdo de página entra uma vez. Termina em transform:none para
+   não virar containing block de nenhum modal fixo lá dentro. */
+@keyframes gd-rise {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: none; }
+}
+.gd-rise { animation: gd-rise var(--t-slow) var(--ease) both; }
+
+/* gd-shine: faixa de luz que atravessa o CTA dourado (embutida em .btn-primary). */
+@keyframes gd-shine {
+  to { transform: translateX(120%); }
+}
+.gd-shine {
+  position: relative;
+  overflow: hidden;
+}
+.gd-shine::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(105deg, transparent 35%, rgba(255, 255, 255, 0.45) 50%, transparent 65%);
+  transform: translateX(-120%);
+}
+@media (hover: hover) {
+  .gd-shine:hover::after { animation: gd-shine 700ms var(--ease); }
+}
+.gd-shine.is-done::after { animation: gd-shine 700ms var(--ease); }
+
+/* gd-pop: badge/pill que surge. */
+@keyframes gd-pop {
+  from { opacity: 0; transform: scale(0.6); }
+  to   { opacity: 1; transform: none; }
+}
+.gd-pop { animation: gd-pop var(--t-base) var(--ease-spring) both; }
+
+/* gd-ring: anel que se expande três vezes. No máximo 1 por tela.
+   O handoff pede scale+opacity num ::after com borda, mas dentro de um painel
+   com backdrop-filter o Chromium pinta esse pseudo-elemento escalado com um
+   fundo escuro (conferido em screenshot). O espalhamento de box-shadow dá o
+   mesmo anel sem o artefato — é a única animação fora de transform/opacity,
+   e dura 3,6s no total. */
+@keyframes gd-ring {
+  from { box-shadow: 0 0 0 0 rgb(var(--destaque-rgb) / 0.7); }
+  to   { box-shadow: 0 0 0 14px rgb(var(--destaque-rgb) / 0); }
+}
+.gd-ring { position: relative; }
+.gd-ring::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  animation: gd-ring 1.2s var(--ease) 3;
+}
+
+/* gd-check: o traço do check se desenha. */
+@keyframes gd-check {
+  to { stroke-dashoffset: 0; }
+}
+.gd-check path,
+.gd-check polyline {
+  stroke-dasharray: 24;
+  stroke-dashoffset: 24;
+  animation: gd-check 400ms var(--ease) forwards;
+}
+
+/* gd-toast: entrada do toast (gd-rise com mola). */
+.gd-toast { animation: gd-rise var(--t-slow) var(--ease-spring) both; }
+
+/* gd-shake: campo com erro ao enviar. */
+@keyframes gd-shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-4px); }
+  40%, 80% { transform: translateX(4px); }
+}
+.gd-shake { animation: gd-shake 360ms var(--ease); }
+
+/* gd-caret: cursor dourado piscando enquanto a IA escreve. Some ao terminar
+   (a classe é removida). */
+@keyframes gd-caret {
+  50% { opacity: 0; }
+}
+.gd-caret::after {
+  content: '';
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  margin-left: 2px;
+  vertical-align: -0.15em;
+  background: var(--gold);
+  animation: gd-caret 1s steps(1) infinite;
+}
+
+/* gd-sk: skeleton com faixa varrendo. */
+@keyframes gd-sk {
+  to { transform: translateX(100%); }
+}
+.gd-sk {
+  position: relative;
+  overflow: hidden;
+  background: var(--glass-2);
+  border-radius: 8px;
+}
+.gd-sk::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.10), transparent);
+  animation: gd-sk 1.4s var(--ease) infinite;
+}
+
+/* Menos movimento — pedido do sistema ou opção do usuário (.reduce-motion no
+   <html>): desliga tudo, inclusive o fundo e o press. */
+@media (prefers-reduced-motion: reduce) {
+  .app-bg *,
+  .gd-rise, .gd-pop, .gd-toast, .gd-shake, .toc-panel,
+  .gd-ring::after, .gd-shine::after, .btn-primary::after,
+  .gd-check path, .gd-check polyline, .gd-caret::after, .gd-sk::after,
+  .seg-ind {
+    animation: none !important;
+    transition: none !important;
+  }
+  :where(button, [role="button"], a[href], .seg-item, .tab, .app-nav-item):active,
+  .press:active { scale: none; }
+}
+:root.reduce-motion :is(.app-bg *,
+  .gd-rise, .gd-pop, .gd-toast, .gd-shake, .toc-panel,
+  .gd-ring::after, .gd-shine::after, .btn-primary::after,
+  .gd-check path, .gd-check polyline, .gd-caret::after, .gd-sk::after,
+  .seg-ind) {
+  animation: none !important;
+  transition: none !important;
+}
+:root.reduce-motion :where(button, [role="button"], a[href], .seg-item, .tab, .app-nav-item):active,
+:root.reduce-motion .press:active { scale: none; }
+
+/* ── App layout primitives ── */
+.ab {
+  display: flex;
+  width: 100%;
+  height: 100vh;
+  min-height: 100vh;
+  overflow: hidden;
+  /* Fundo agora é a camada animada em body::before/::after — o shell fica
+     transparente para ela aparecer atrás dos painéis de vidro. */
+  background: transparent;
+  color: var(--fg);
+  font-family: var(--sans);
+  /* Painéis flutuam: 14px de respiro na página e entre sidebar e main. */
+  padding: 14px;
+  gap: 14px;
+}
+
+.mn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  /* Painel de vidro */
+  background: var(--grain), var(--glass);
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(150%);
+  backdrop-filter: blur(var(--blur)) saturate(150%);
+  border: 1px solid var(--gline);
+  box-shadow: var(--ghl), var(--gshadow);
+  border-radius: 22px;
+  overflow: hidden;
+}
+
+.mn-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 28px 32px 56px;
+  /* gd-rise: o conteúdo da página entra uma vez (README §8). */
+  animation: gd-rise var(--t-slow) var(--ease) both;
+}
+
+.mn-scroll-narrow {
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* ── Typography ── */
+.eyebrow {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-4);
+  font-weight: 500;
+}
+
+.h-display {
+  font-family: var(--serif);
+  font-weight: 700;
+  font-size: 40px;
+  line-height: 1.1;
+  letter-spacing: -0.025em;
+  color: var(--fg);
+  margin: 0;
+}
+
+.h1 {
+  font-family: var(--sans);
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--fg);
+  margin: 0;
+}
+
+.h2 {
+  font-family: var(--sans);
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  color: var(--fg);
+  margin: 0;
+}
+
+.h3 {
+  font-family: var(--sans);
+  font-size: 13.5px;
+  font-weight: 600;
+  letter-spacing: 0;
+  color: var(--fg);
+  margin: 0;
+}
+
+.label {
+  display: block;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--fg-3);
+  margin-bottom: 6px;
+  letter-spacing: 0.01em;
+}
+
+.hr {
+  border: 0;
+  border-top: 1px solid var(--line-soft);
+  margin: 14px 0;
+}
+
+/* ── Cards ── */
+.card {
+  background: var(--glass-2);
+  border: 1px solid var(--gline);
+  box-shadow: var(--ghl);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.card-hover {
+  transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+  cursor: pointer;
+}
+.card-hover:hover {
+  border-color: var(--gold-line);
+  background: var(--glass-3);
+}
+
+/* ── Três níveis de superfície (README §6.1) ──
+   Painel é o ÚNICO nível com blur. Cartão e Ativo não desfocam, para nunca
+   empilhar blur sobre blur. */
+.glass-panel {
+  background: var(--grain), var(--glass);
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(150%);
+  backdrop-filter: blur(var(--blur)) saturate(150%);
+  border: 1px solid var(--gline);
+  box-shadow: var(--ghl), var(--gshadow);
+  border-radius: 22px;
+  overflow: hidden;
+}
+.glass-card {
+  background: var(--glass-2);
+  border: 1px solid var(--gline);
+  box-shadow: var(--ghl);
+  border-radius: 16px;
+}
+.glass-active {
+  background: var(--glass-3);
+  border: 1px solid var(--gline);
+  box-shadow: var(--ghl);
+}
+
+/* ── Section header ── */
+.sec-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+.sec-head-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+/* ── Toolbar ── */
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+/* Busca de lista em pílula (LAYOUT §2.4). */
+.toolbar .input-group .input { border-radius: 999px; }
+
+/* ── Buttons ── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 38px;
+  padding: 0 16px;
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1;
+  background: var(--btn-bg);
+  color: var(--fg);
+  border: 1px solid var(--gline);
+  box-shadow: var(--ghl);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease), color var(--t-fast) var(--ease), scale var(--t-fast) var(--ease);
+  white-space: nowrap;
+  text-decoration: none;
+}
+.btn:hover:not(:disabled) {
+  background: var(--glass-3);
+  border-color: var(--gline);
+}
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Primário (dourado): um por contexto, sempre o último do grupo. O brilho
+   gd-shine vem embutido — passa no hover e quando a ação termina (.is-done). */
+.btn-primary {
+  position: relative;
+  overflow: hidden;
+  background: var(--cta);
+  color: var(--on-gold);
+  border-color: rgb(var(--destaque-rgb) / 0.6);
+  box-shadow: 0 6px 20px rgb(var(--destaque-rgb) / 0.30), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  font-weight: 600;
+}
+.btn.btn-primary { padding: 0 18px; }
+.btn.btn-primary.btn-sm { padding: 0 14px; }
+.btn-primary:hover:not(:disabled) {
+  background: var(--cta-hover);
+  border-color: rgb(var(--destaque-rgb) / 0.6);
+}
+.dark .btn-primary {
+  color: var(--on-gold);
+}
+.btn-primary::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(105deg, transparent 35%, rgba(255, 255, 255, 0.45) 50%, transparent 65%);
+  transform: translateX(-120%);
+}
+@media (hover: hover) {
+  .btn-primary:hover:not(:disabled)::after { animation: gd-shine 700ms var(--ease); }
+}
+.btn-primary.is-done::after { animation: gd-shine 700ms var(--ease); }
+
+.btn-ghost {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+  color: var(--fg-3);
+}
+.btn-ghost:hover:not(:disabled) {
+  background: var(--glass-3);
+  border-color: transparent;
+  color: var(--fg);
+}
+
+/* Sucesso ("Salvo"): estado de conclusão, não um CTA. */
+.btn-ok {
+  background: var(--ok-soft);
+  border-color: rgba(93, 206, 127, 0.3);
+  color: var(--ok-text);
+}
+
+.btn-danger {
+  background: var(--danger);
+  color: white;
+  border-color: var(--danger);
+}
+.btn-danger:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+
+/* Confirmacao de acao que sobrescreve ou reseta algo. Nao e erro (--danger),
+   mas nao pode sair dourado como um CTA comum: o alerta e informacao, nao
+   decoracao. O texto escuro passa no contraste nos dois temas (4.6:1 no claro,
+   9:1 no escuro); branco reprovaria no claro. */
+.btn-warn {
+  background: var(--warn);
+  color: var(--on-destaque);
+  border-color: var(--warn);
+  font-weight: 600;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28);
+}
+.btn-warn:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+
+/* Alturas (README §7): 30 no header do editor e em listas, 38 no cabeçalho
+   de página (o padrão), 46 no auth. */
+.btn-sm {
+  min-height: 30px;
+  padding: 0 12px;
+  font-size: 12px;
+  gap: 5px;
+}
+.btn-lg {
+  min-height: 46px;
+  padding: 0 18px;
+  font-size: 14px;
+  gap: 8px;
+}
+.btn-icon {
+  width: 30px;
+  height: 30px;
+  min-height: 30px;
+  padding: 0;
+  border-radius: 50%;
+  gap: 0;
+}
+
+/* Botão flutuante sobre o documento — Índice, Pré-visualização/Editor e
+   Validar Contrato, a mesma pílula de vidro fumê nos três (o anel de
+   créditos divide o material). O fumê por baixo do grão existe porque eles
+   ficam sobre a folha branca em telas estreitas e, só com o vidro, quase
+   sumiam; .85 é o mínimo para o rótulo --fg-3 continuar legível no escuro. */
+.btn-float,
+.credits-ring {
+  background: var(--grain), rgb(var(--base-rgb) / 0.85);
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(150%);
+  backdrop-filter: blur(var(--blur)) saturate(150%);
+  border: 1px solid var(--gline);
+  box-shadow: var(--ghl), var(--gshadow);
+}
+.btn-float {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 14px 0 12px;
+  border-radius: 999px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  line-height: 1;
+  color: var(--fg-3);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease), scale var(--t-fast) var(--ease);
+}
+/* Só o ícone da frente é dourado; um chevron no fim segue o texto. */
+.btn-float > svg:first-child { width: 15px; height: 15px; flex-shrink: 0; color: var(--gold-text); }
+.btn-float:hover,
+.btn-float.is-active { color: var(--fg); border-color: var(--gold-line); }
+
+/* ── Inputs ── */
+.input {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 38px;
+  padding: 0 14px;
+  background: var(--glass-2);
+  border: 1px solid var(--gline);
+  border-radius: 12px;
+  font-family: var(--sans);
+  font-size: 13px;
+  color: var(--fg);
+  line-height: 1.4;
+  transition: border-color var(--t-fast) var(--ease), background var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease);
+}
+textarea.input {
+  min-height: 84px;
+  padding: 10px 14px;
+  resize: vertical;
+}
+.input:focus,
+.input:focus-visible {
+  outline: none;
+  border-color: var(--gold-line);
+  box-shadow: 0 0 0 3px var(--gold-glow);
+}
+.input::placeholder {
+  color: var(--fg-4);
+}
+.input.is-error,
+.input[aria-invalid="true"] {
+  border-color: var(--danger);
+}
+.input-lg {
+  min-height: 44px;
+  font-size: 14px;
+}
+/* Busca de lista: pílula, ícone à esquerda. */
+.input-search {
+  border-radius: 999px;
+}
+
+.input-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.input-group .input {
+  padding-left: 38px;
+}
+.input-group .input-lg {
+  padding-left: 40px;
+}
+.input-group .input-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--fg-4);
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  z-index: 1;
+}
+
+/* ── Pills de status (README §7) — texto nas cores *-text, ponto com brilho ── */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  font-family: var(--sans);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.3;
+  color: var(--fg-2);
+  background: var(--glass-2);
+  border: 1px solid var(--gline);
+  border-radius: 999px;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+.pill-mono {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.02em;
+}
+.pill-dot::before {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 6px currentColor;
+  flex-shrink: 0;
+}
+.pill-gold {
+  color: var(--gold-text);
+  background: var(--gold-glow);
+  border-color: var(--gold-line);
+}
+.pill-ok {
+  color: var(--ok-text);
+  background: var(--ok-soft);
+  border-color: rgba(93, 206, 127, 0.28);
+}
+.pill-warn {
+  color: var(--warn-text);
+  background: rgba(230, 180, 80, 0.13);
+  border-color: rgba(230, 180, 80, 0.30);
+}
+.pill-info {
+  color: var(--info-text);
+  background: rgba(108, 160, 230, 0.12);
+  border-color: rgba(108, 160, 230, 0.30);
+}
+.pill-danger {
+  color: var(--danger-text);
+  background: rgba(230, 101, 101, 0.12);
+  border-color: rgba(230, 101, 101, 0.30);
+}
+
+/* ── Segmentado / abas (README §7): pílula, nunca sublinhado ── */
+.seg,
+.tabs {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  background: var(--glass-2);
+  border: 1px solid var(--gline);
+  border-radius: 999px;
+  max-width: 100%;
+}
+.tabs {
+  margin-bottom: 18px;
+  overflow-x: auto;
+}
+.seg-item,
+.tab {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 30px;
+  padding: 0 13px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--fg-3);
+  cursor: pointer;
+  transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease);
+  white-space: nowrap;
+}
+.seg-item:hover,
+.tab:hover {
+  color: var(--fg-2);
+}
+.seg-item.active,
+.tab.active {
+  background: var(--glass-3);
+  border-color: var(--gline);
+  box-shadow: var(--ghl), 0 2px 6px rgba(0, 0, 0, 0.12);
+  color: var(--fg);
+  font-weight: 600;
+}
+/* No painel IA a aba ativa leva a borda dourada. */
+.seg-gold .seg-item.active { border-color: var(--gold-line); }
+/* Segmentado que ocupa a largura do painel (abas do painel IA). */
+.seg-full { display: flex; width: 100%; }
+.seg-gold .seg-ind { border-color: var(--gold-line); }
+.tab-count {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--fg-4);
+  margin-left: 2px;
+}
+/* gd-slide-tab: indicador que desliza. Quem quiser o deslize põe um .seg-ind
+   como primeiro filho e alimenta --x/--w (hook useSegIndicator). */
+.seg-ind {
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  left: 3px;
+  width: var(--w, 0px);
+  transform: translateX(var(--x, 0px));
+  background: var(--glass-3);
+  border: 1px solid var(--gline);
+  border-radius: 999px;
+  box-shadow: var(--ghl), 0 2px 6px rgba(0, 0, 0, 0.12);
+  transition: transform var(--t-base) var(--ease), width var(--t-base) var(--ease);
+  pointer-events: none;
+}
+.seg:has(.seg-ind) .seg-item.active,
+.tabs:has(.seg-ind) .tab.active {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+
+/* ── Stats: cartão de raio 16 (LAYOUT §2.3) ── */
+.stat {
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-radius: 16px;
+}
+/* O anel de atenção (gd-ring) vaza 2px para fora do cartão. */
+.card.stat { overflow: visible; }
+.stat-label {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--fg-4);
+}
+.stat-val {
+  font-family: var(--serif);
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  color: var(--fg);
+  font-variant-numeric: tabular-nums;
+}
+.stat-delta {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ok-text);
+}
+.stat-delta.down {
+  color: var(--warn-text);
+}
+
+/* ── Sidebar (app shell) — LAYOUT §2.1 ── */
+.app-sidebar {
+  width: 232px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--grain), var(--glass);
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(150%);
+  backdrop-filter: blur(var(--blur)) saturate(150%);
+  border: 1px solid var(--gline);
+  box-shadow: var(--ghl), var(--gshadow);
+  border-radius: 22px;
+  /* Flutua dentro do padding de 14px do .ab: a altura é a do container. */
+  height: 100%;
+  overflow: hidden;
+  transition: width var(--t-base) var(--ease);
+}
+.app-sidebar.collapsed {
+  width: 64px;
+}
+.app-sidebar-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 18px;
+  height: 60px;
+  border-bottom: 1px solid var(--gline-2);
+  flex-shrink: 0;
+}
+.app-sidebar-nav {
+  flex: 1;
+  padding: 12px 10px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.app-sidebar-foot {
+  padding: 10px;
+  border-top: 1px solid var(--gline-2);
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.app-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--fg-3);
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 400;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease);
+}
+.app-nav-item:hover {
+  background: var(--glass-2);
+  color: var(--fg);
+}
+.app-nav-item.active {
+  background: var(--glass-3);
+  border-color: var(--gline);
+  box-shadow: var(--ghl);
+  color: var(--fg);
+  font-weight: 500;
+}
+.app-nav-item.active .icn {
+  color: var(--gold);
+}
+.app-nav-item.collapsed {
+  justify-content: center;
+  padding-left: 8px;
+  padding-right: 8px;
+}
+
+/* ── Topbar — dentro do painel main (LAYOUT §2) ── */
+.app-topbar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  height: 56px;
+  padding: 0 32px;
+  border-bottom: 1px solid var(--gline-2);
+  flex-shrink: 0;
+  background: transparent;
+}
+.crumb {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--sans);
+  font-size: 12.5px;
+  color: var(--fg-3);
+}
+.crumb-sep {
+  color: var(--fg-4);
+}
+.crumb-last {
+  color: var(--fg);
+  font-weight: 500;
+}
+
+/* ── Estética do App: seletor de cor de destaque ── */
+.paletas { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 760px) { .paletas { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.paleta-opcao {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 6px 9px;
+  border-radius: 14px;
+  background: var(--glass-2);
+  border: 1px solid var(--gline);
+  box-shadow: var(--ghl);
+  cursor: pointer;
+  color: var(--fg-3);
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 500;
+  transition: background var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
+}
+.paleta-opcao:hover { background: var(--glass-3); color: var(--fg); }
+.paleta-opcao.is-on { background: var(--glass-3); border-color: var(--destaque-line); color: var(--fg); }
+.paleta-amostra {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 4px 12px rgba(0, 0, 0, 0.18);
+}
+.paleta-opcao.is-on .paleta-amostra { outline: 2px solid var(--fg); outline-offset: 2px; }
+.paleta-amostra svg { width: 16px; height: 16px; }
+
+
+/* ═══ PALETAS:INICIO — gerado por `npm run paletas` a partir de src/lib/paletas.ts. NÃO edite à mão. ═══ */
+/* Dourado — A identidade clássica do escritório. */
+html[data-destaque="dourado"] {
+  --destaque: #957832;
+  --destaque-text: #6C5624;
+  --destaque-glow: rgba(149, 120, 50, 0.13);
+  --destaque-line: rgba(149, 120, 50, 0.36);
+  --on-destaque: #1c1709;
+  --destaque-rgb: 149 120 50;
+  --destaque-2-rgb: 184 152 80;
+  --destaque-3-rgb: 167 135 64;
+  --destaque-claro-rgb: 212 183 117;
+  --destaque-escuro-rgb: 138 111 48;
+  --destaque-serie-1: #C9A961;
+  --destaque-serie-2: #8A6F30;
+  --destaque-serie-3: #E2CB92;
+  --destaque-serie-4: #B08D4F;
+  --destaque-serie-5: #D4B775;
+  --destaque-serie-6: #6E5726;
+  --cta: linear-gradient(90deg, #B8964F, #A3833D);
+  --cta-hover: linear-gradient(90deg, #C4A35C, #B39150);
+  --orb1: rgba(211, 185, 124, calc(0.8 * var(--gi)));
+  --orb3: rgba(206, 182, 126, calc(0.62 * var(--gi)));
+  --orb1-rgb: 211 185 124;
+  --orb3-rgb: 206 182 126;
+  --primary: 42 50% 39%;
+  --ring: 42 50% 39%;
+}
+html.dark[data-destaque="dourado"] {
+  --destaque: #C9A961;
+  --destaque-text: #C9A961;
+  --destaque-glow: rgba(201, 169, 97, 0.1);
+  --destaque-line: rgba(201, 169, 97, 0.3);
+  --on-destaque: #1c1709;
+  --destaque-rgb: 201 169 97;
+  --destaque-2-rgb: 184 152 80;
+  --destaque-3-rgb: 167 135 64;
+  --destaque-claro-rgb: 212 183 117;
+  --destaque-escuro-rgb: 138 111 48;
+  --destaque-serie-1: #C9A961;
+  --destaque-serie-2: #8A6F30;
+  --destaque-serie-3: #E2CB92;
+  --destaque-serie-4: #B08D4F;
+  --destaque-serie-5: #D4B775;
+  --destaque-serie-6: #6E5726;
+  --cta: linear-gradient(90deg, #B8964F, #A3833D);
+  --cta-hover: linear-gradient(90deg, #C4A35C, #B39150);
+  --orb1: rgba(87, 70, 29, calc(0.55 * var(--gi)));
+  --orb3: rgba(79, 65, 30, calc(0.4 * var(--gi)));
+  --orb1-rgb: 87 70 29;
+  --orb3-rgb: 79 65 30;
+  --primary: 42 49% 58%;
+  --ring: 42 49% 58%;
+}
+
+/* Cobre — Quente e terroso, um degrau abaixo do dourado. */
+html[data-destaque="cobre"] {
+  --destaque: #BF6233;
+  --destaque-text: #8A4725;
+  --destaque-glow: rgba(191, 98, 51, 0.13);
+  --destaque-line: rgba(191, 98, 51, 0.36);
+  --on-destaque: #1c1709;
+  --destaque-rgb: 191 98 51;
+  --destaque-2-rgb: 196 100 52;
+  --destaque-3-rgb: 182 93 48;
+  --destaque-claro-rgb: 221 160 129;
+  --destaque-escuro-rgb: 138 71 37;
+  --destaque-serie-1: #BF6233;
+  --destaque-serie-2: #8A4725;
+  --destaque-serie-3: #E1A88C;
+  --destaque-serie-4: #D07A4F;
+  --destaque-serie-5: #D8916D;
+  --destaque-serie-6: #6C371D;
+  --cta: linear-gradient(90deg, #CD7042, #CA6838);
+  --cta-hover: linear-gradient(90deg, #D07A4F, #CD7244);
+  --orb1: rgba(222, 178, 157, calc(0.8 * var(--gi)));
+  --orb3: rgba(217, 176, 155, calc(0.62 * var(--gi)));
+  --orb1-rgb: 222 178 157;
+  --orb3-rgb: 217 176 155;
+  --primary: 20 58% 47%;
+  --ring: 20 58% 47%;
+}
+html.dark[data-destaque="cobre"] {
+  --destaque: #E1A88C;
+  --destaque-text: #E1A88C;
+  --destaque-glow: rgba(225, 168, 140, 0.1);
+  --destaque-line: rgba(225, 168, 140, 0.3);
+  --on-destaque: #1c1709;
+  --destaque-rgb: 225 168 140;
+  --destaque-2-rgb: 213 137 99;
+  --destaque-3-rgb: 205 112 66;
+  --destaque-claro-rgb: 235 199 181;
+  --destaque-escuro-rgb: 162 83 43;
+  --destaque-serie-1: #E1A88C;
+  --destaque-serie-2: #A2532B;
+  --destaque-serie-3: #EECEBE;
+  --destaque-serie-4: #D28057;
+  --destaque-serie-5: #E8BCA7;
+  --destaque-serie-6: #7C3F21;
+  --cta: linear-gradient(90deg, #D58963, #CD7042);
+  --cta-hover: linear-gradient(90deg, #D99471, #D17D53);
+  --orb1: rgba(108, 60, 36, calc(0.55 * var(--gi)));
+  --orb3: rgba(96, 56, 37, calc(0.4 * var(--gi)));
+  --orb1-rgb: 108 60 36;
+  --orb3-rgb: 96 56 37;
+  --primary: 20 59% 72%;
+  --ring: 20 59% 72%;
+}
+
+/* Safira — Azul profundo, sóbrio e institucional. */
+html[data-destaque="safira"] {
+  --destaque: #467AD4;
+  --destaque-text: #2757A8;
+  --destaque-glow: rgba(70, 122, 212, 0.13);
+  --destaque-line: rgba(70, 122, 212, 0.36);
+  --on-destaque: #FFFFFF;
+  --destaque-rgb: 70 122 212;
+  --destaque-2-rgb: 75 125 213;
+  --destaque-3-rgb: 61 116 210;
+  --destaque-claro-rgb: 143 175 229;
+  --destaque-escuro-rgb: 39 87 168;
+  --destaque-serie-1: #467AD4;
+  --destaque-serie-2: #2757A8;
+  --destaque-serie-3: #99B6E7;
+  --destaque-serie-4: #6590DB;
+  --destaque-serie-5: #7FA3E1;
+  --destaque-serie-6: #1F4383;
+  --cta: linear-gradient(90deg, #366ED0, #2C60BB);
+  --cta-hover: linear-gradient(90deg, #4277D3, #3069CB);
+  --orb1: rgba(167, 189, 226, calc(0.8 * var(--gi)));
+  --orb3: rgba(165, 185, 221, calc(0.62 * var(--gi)));
+  --orb1-rgb: 167 189 226;
+  --orb3-rgb: 165 185 221;
+  --primary: 218 62% 55%;
+  --ring: 218 62% 55%;
+}
+html.dark[data-destaque="safira"] {
+  --destaque: #99B6E7;
+  --destaque-text: #99B6E7;
+  --destaque-glow: rgba(153, 182, 231, 0.1);
+  --destaque-line: rgba(153, 182, 231, 0.3);
+  --on-destaque: #1c1709;
+  --destaque-rgb: 153 182 231;
+  --destaque-2-rgb: 118 156 223;
+  --destaque-3-rgb: 91 137 216;
+  --destaque-claro-rgb: 189 208 240;
+  --destaque-escuro-rgb: 46 101 197;
+  --destaque-serie-1: #99B6E7;
+  --destaque-serie-2: #2E65C5;
+  --destaque-serie-3: #C5D5F1;
+  --destaque-serie-4: #6C95DD;
+  --destaque-serie-5: #B0C7ED;
+  --destaque-serie-6: #234E97;
+  --cta: linear-gradient(90deg, #769CDF, #5B89D8);
+  --cta-hover: linear-gradient(90deg, #82A5E2, #6993DC);
+  --orb1: rgba(41, 72, 124, calc(0.55 * var(--gi)));
+  --orb3: rgba(41, 66, 109, calc(0.4 * var(--gi)));
+  --orb1-rgb: 41 72 124;
+  --orb3-rgb: 41 66 109;
+  --primary: 218 62% 75%;
+  --ring: 218 62% 75%;
+}
+
+/* Petróleo — Verde-azulado, frio e discreto. */
+html[data-destaque="petroleo"] {
+  --destaque: #2A8792;
+  --destaque-text: #1F6269;
+  --destaque-glow: rgba(42, 135, 146, 0.13);
+  --destaque-line: rgba(42, 135, 146, 0.36);
+  --on-destaque: #FFFFFF;
+  --destaque-rgb: 42 135 146;
+  --destaque-2-rgb: 43 138 149;
+  --destaque-3-rgb: 40 129 139;
+  --destaque-claro-rgb: 72 189 202;
+  --destaque-escuro-rgb: 31 98 105;
+  --destaque-serie-1: #2A8792;
+  --destaque-serie-2: #1F6269;
+  --destaque-serie-3: #5AC4CF;
+  --destaque-serie-4: #319EAA;
+  --destaque-serie-5: #37B1BF;
+  --destaque-serie-6: #184C52;
+  --cta: linear-gradient(90deg, #277C85, #226D75);
+  --cta-hover: linear-gradient(90deg, #29848E, #25767F);
+  --orb1: rgba(118, 200, 209, calc(0.8 * var(--gi)));
+  --orb3: rgba(122, 196, 204, calc(0.62 * var(--gi)));
+  --orb1-rgb: 118 200 209;
+  --orb3-rgb: 122 196 204;
+  --primary: 186 55% 37%;
+  --ring: 186 55% 37%;
+}
+html.dark[data-destaque="petroleo"] {
+  --destaque: #5AC4CF;
+  --destaque-text: #5AC4CF;
+  --destaque-glow: rgba(90, 196, 207, 0.1);
+  --destaque-line: rgba(90, 196, 207, 0.3);
+  --on-destaque: #1c1709;
+  --destaque-rgb: 90 196 207;
+  --destaque-2-rgb: 53 170 183;
+  --destaque-3-rgb: 47 150 161;
+  --destaque-claro-rgb: 152 218 225;
+  --destaque-escuro-rgb: 36 115 123;
+  --destaque-serie-1: #5AC4CF;
+  --destaque-serie-2: #24737B;
+  --destaque-serie-3: #A5DEE5;
+  --destaque-serie-4: #33A3AF;
+  --destaque-serie-5: #83D2DB;
+  --destaque-serie-6: #1B585E;
+  --cta: linear-gradient(90deg, #35AAB7, #2F96A1);
+  --cta-hover: linear-gradient(90deg, #38B3C1, #32A0AD);
+  --orb1: rgba(28, 79, 85, calc(0.55 * var(--gi)));
+  --orb3: rgba(29, 72, 77, calc(0.4 * var(--gi)));
+  --orb1-rgb: 28 79 85;
+  --orb3-rgb: 29 72 77;
+  --primary: 186 55% 58%;
+  --ring: 186 55% 58%;
+}
+
+/* Ametista — Violeta suave, para destacar sem gritar. */
+html[data-destaque="ametista"] {
+  --destaque: #9963C8;
+  --destaque-text: #773CAA;
+  --destaque-glow: rgba(153, 99, 200, 0.13);
+  --destaque-line: rgba(153, 99, 200, 0.36);
+  --on-destaque: #FFFFFF;
+  --destaque-rgb: 153 99 200;
+  --destaque-2-rgb: 156 103 202;
+  --destaque-3-rgb: 148 92 198;
+  --destaque-claro-rgb: 193 161 222;
+  --destaque-escuro-rgb: 119 60 170;
+  --destaque-serie-1: #9963C8;
+  --destaque-serie-2: #773CAA;
+  --destaque-serie-3: #C7A9E1;
+  --destaque-serie-4: #AA7DD1;
+  --destaque-serie-5: #B893D9;
+  --destaque-serie-6: #5D2F85;
+  --cta: linear-gradient(90deg, #9056C3, #8442BD);
+  --cta-hover: linear-gradient(90deg, #9760C7, #8C4FC1);
+  --orb1: rgba(204, 177, 228, calc(0.8 * var(--gi)));
+  --orb3: rgba(201, 174, 224, calc(0.62 * var(--gi)));
+  --orb1-rgb: 204 177 228;
+  --orb3-rgb: 201 174 224;
+  --primary: 272 48% 59%;
+  --ring: 272 48% 59%;
+}
+html.dark[data-destaque="ametista"] {
+  --destaque: #C7A9E1;
+  --destaque-text: #C7A9E1;
+  --destaque-glow: rgba(199, 169, 225, 0.1);
+  --destaque-line: rgba(199, 169, 225, 0.3);
+  --on-destaque: #1c1709;
+  --destaque-rgb: 199 169 225;
+  --destaque-2-rgb: 179 139 214;
+  --destaque-3-rgb: 164 116 206;
+  --destaque-claro-rgb: 219 199 235;
+  --destaque-escuro-rgb: 137 74 191;
+  --destaque-serie-1: #C7A9E1;
+  --destaque-serie-2: #894ABF;
+  --destaque-serie-3: #DFCEEE;
+  --destaque-serie-4: #AE83D3;
+  --destaque-serie-5: #D4BDE8;
+  --destaque-serie-6: #6B3699;
+  --cta: linear-gradient(90deg, #B38BD6, #A474CE);
+  --cta-hover: linear-gradient(90deg, #BA95DA, #AC80D3);
+  --orb1: rgba(96, 49, 138, calc(0.55 * var(--gi)));
+  --orb3: rgba(88, 47, 123, calc(0.4 * var(--gi)));
+  --orb1-rgb: 96 49 138;
+  --orb3-rgb: 88 47 123;
+  --primary: 272 48% 77%;
+  --ring: 272 48% 77%;
+}
+
+/* Grafite — Cinza-azulado, quase neutro. */
+html[data-destaque="grafite"] {
+  --destaque: #757C87;
+  --destaque-text: #545A61;
+  --destaque-glow: rgba(117, 124, 135, 0.13);
+  --destaque-line: rgba(117, 124, 135, 0.36);
+  --on-destaque: #FFFFFF;
+  --destaque-rgb: 117 124 135;
+  --destaque-2-rgb: 120 127 137;
+  --destaque-3-rgb: 111 118 128;
+  --destaque-claro-rgb: 169 174 180;
+  --destaque-escuro-rgb: 84 90 97;
+  --destaque-serie-1: #757C87;
+  --destaque-serie-2: #545A61;
+  --destaque-serie-3: #B1B5BB;
+  --destaque-serie-4: #8B919A;
+  --destaque-serie-5: #9DA2AA;
+  --destaque-serie-6: #42464B;
+  --cta: linear-gradient(90deg, #6B727B, #5E646C);
+  --cta-hover: linear-gradient(90deg, #727983, #666D76);
+  --orb1: rgba(184, 188, 193, calc(0.8 * var(--gi)));
+  --orb3: rgba(180, 185, 190, calc(0.62 * var(--gi)));
+  --orb1-rgb: 184 188 193;
+  --orb3-rgb: 180 185 190;
+  --primary: 217 7% 49%;
+  --ring: 217 7% 49%;
+}
+html.dark[data-destaque="grafite"] {
+  --destaque: #B1B5BB;
+  --destaque-text: #B1B5BB;
+  --destaque-glow: rgba(177, 181, 187, 0.1);
+  --destaque-line: rgba(177, 181, 187, 0.3);
+  --on-destaque: #1c1709;
+  --destaque-rgb: 177 181 187;
+  --destaque-2-rgb: 150 156 164;
+  --destaque-3-rgb: 131 138 147;
+  --destaque-claro-rgb: 204 207 211;
+  --destaque-escuro-rgb: 99 105 114;
+  --destaque-serie-1: #B1B5BB;
+  --destaque-serie-2: #636972;
+  --destaque-serie-3: #D2D4D8;
+  --destaque-serie-4: #8F969E;
+  --destaque-serie-5: #C2C6CA;
+  --destaque-serie-6: #4C5057;
+  --cta: linear-gradient(90deg, #969CA4, #838A93);
+  --cta-hover: linear-gradient(90deg, #9FA4AC, #8D939C);
+  --orb1: rgba(68, 73, 79, calc(0.55 * var(--gi)));
+  --orb3: rgba(63, 67, 72, calc(0.4 * var(--gi)));
+  --orb1-rgb: 68 73 79;
+  --orb3-rgb: 63 67 72;
+  --primary: 216 7% 71%;
+  --ring: 216 7% 71%;
+}
+/* ═══ PALETAS:FIM ═══ */
+
+/* ═══════════════════════════════════════════════════════════════════════
+   PORTAL DE DOCUMENTOS — regras próprias deste app (prompt §1).
+   Tudo lê os tokens acima. Nada de cor de destaque escrita à mão.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+html { min-height: 100%; }
+body {
+  min-height: 100%;
+  margin: 0;
+  background: var(--base);
+  color: var(--fg);
+  font-family: var(--sans);
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+/* Alturas reservadas das barras: nenhuma barra fixa cobre conteúdo. */
+:root {
+  --topo-h: 56px;
+  --tabbar-h: 62px;
+  --tabbar-gap: 14px;
+  --safe-b: env(safe-area-inset-bottom, 0px);
+  --safe-t: env(safe-area-inset-top, 0px);
+  /* Espaço que o conteúdo reserva embaixo no celular: barra + folga + gesto do iPhone + respiro. */
+  --reserva-abas: calc(var(--tabbar-h) + var(--tabbar-gap) + var(--safe-b) + 24px);
+}
+
+/* ── Casca (shell) ─────────────────────────────────────────────────
+   Uma árvore só; o layout muda por CSS. .so-pc / .so-cel escondem o
+   que não é da largura atual. */
+.so-cel { display: none !important; }
+@media (max-width: 767px) {
+  .so-pc { display: none !important; }
+  .so-cel { display: flex !important; }
+}
+
+/* Computador: painéis flutuantes com sidebar em grupos (modelo A). */
+.casca {
+  display: flex;
+  height: 100dvh;
+  padding: 14px;
+  gap: 14px;
+  background: transparent;
+}
+.casca-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--grain), var(--glass);
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(150%);
+  backdrop-filter: blur(var(--blur)) saturate(150%);
+  border: 1px solid var(--gline);
+  box-shadow: var(--ghl), var(--gshadow);
+  border-radius: 22px;
+  overflow: hidden;
+}
+.casca-topo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: var(--topo-h);
+  padding: 0 24px;
+  border-bottom: 1px solid var(--gline-2);
+  flex-shrink: 0;
+}
+.casca-conteudo {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 24px 28px 48px;
+  animation: gd-rise var(--t-slow) var(--ease) both;
+}
+.nav-grupo {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-4);
+  padding: 12px 10px 4px;
+}
+.app-nav-item .icn { width: 16px; height: 16px; flex-shrink: 0; }
+.nav-contador {
+  margin-left: auto;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--gold-glow);
+  border: 1px solid var(--gold-line);
+  color: var(--gold-text);
+}
+
+/* Celular (funcionário): a página rola no documento; cabeçalho sticky e
+   tabbar fixa, com o conteúdo reservando a altura dela. */
+@media (max-width: 767px) {
+  .casca { display: block; height: auto; min-height: 100dvh; padding: 0; }
+  .casca-main {
+    display: block;
+    background: transparent;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    border: 0;
+    box-shadow: none;
+    border-radius: 0;
+    overflow: visible;
+  }
+  .casca-conteudo { overflow: visible; padding: 14px 16px var(--reserva-abas); }
+}
+
+/* Cabeçalho do celular: sticky, ocupa o próprio espaço (nunca cobre). */
+.casca-m-topo {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  /* A área segura do topo (relógio/entalhe do iPhone) faz parte do cabeçalho. */
+  height: calc(var(--topo-h) + var(--safe-t));
+  padding: var(--safe-t) 16px 0;
+  /* Base opaca sob o vidro (handoff §5): o conteúdo que rola por baixo não vaza. */
+  background: var(--grain), var(--glass), var(--glass-solid);
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(150%);
+  backdrop-filter: blur(var(--blur)) saturate(150%);
+  border-bottom: 1px solid var(--gline);
+  box-shadow: var(--ghl);
+}
+
+/* Casca do cliente: celular primeiro; no computador, coluna central. */
+.casca-cli { min-height: 100dvh; }
+.casca-cli-conteudo {
+  display: block;
+  padding: 16px 16px var(--reserva-abas);
+  max-width: 640px;
+  margin: 0 auto;
+  animation: gd-rise var(--t-slow) var(--ease) both;
+}
+@media (min-width: 768px) {
+  .casca-cli .casca-m-topo { padding-left: max(16px, calc((100vw - 640px) / 2)); padding-right: max(16px, calc((100vw - 640px) / 2)); }
+  .tabbar-cli { left: 50%; right: auto; width: 560px; transform: translateX(-50%); }
+  .casca-cli-conteudo { padding-top: 24px; }
+}
+
+.tabbar {
+  position: fixed;
+  left: 16px;
+  right: 16px;
+  bottom: calc(var(--tabbar-gap) + var(--safe-b));
+  z-index: 40;
+  height: var(--tabbar-h);
+  display: flex;
+  align-items: stretch;
+  padding: 6px;
+  gap: 2px;
+  border-radius: 24px;
+  background: var(--grain), var(--glass), var(--glass-solid);
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(160%);
+  backdrop-filter: blur(var(--blur)) saturate(160%);
+  border: 1px solid var(--gline);
+  box-shadow: var(--ghl), var(--gshadow);
+}
+.tabbar-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  min-width: 44px;
+  border-radius: 18px;
+  font-size: 10.5px;
+  font-weight: 500;
+  color: var(--fg-3);
+  text-decoration: none;
+  position: relative;
+}
+.tabbar-item svg { width: 20px; height: 20px; }
+.tabbar-item.active { color: var(--gold-text); font-weight: 600; background: var(--glass-3); box-shadow: var(--ghl); }
+.tabbar-badge {
+  position: absolute;
+  top: 4px;
+  right: calc(50% - 20px);
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: var(--danger);
+  color: #fff;
+  font-family: var(--mono);
+  font-size: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Rodapé fixo de ação no celular (botão principal), acima da tabbar. */
+.rodape-acao {
+  position: sticky;
+  bottom: calc(var(--tabbar-h) + var(--tabbar-gap) + var(--safe-b) + 6px);
+  z-index: 20;
+  padding: 10px 0;
+}
+
+/* ── Status (cores fixas, não mudam com a paleta) ─────────────────── */
+/* Pendente, Atrasado, Recebido · a conferir, Conferido, Refazer, Substituído.
+   Cada pílula tem ícone E texto; a cor nunca é o único sinal. */
+.pill svg { width: 12px; height: 12px; flex-shrink: 0; }
+.st-pendente   { color: var(--fg-2);     background: var(--glass-2); border-color: var(--gline); }
+.st-atrasado   { color: var(--danger-text); background: rgba(230, 101, 101, 0.12); border-color: rgba(230, 101, 101, 0.30); }
+.st-recebido   { color: var(--info-text);   background: rgba(108, 160, 230, 0.12); border-color: rgba(108, 160, 230, 0.30); }
+.st-conferido  { color: var(--ok-text);     background: var(--ok-soft); border-color: rgba(93, 206, 127, 0.28); }
+.st-refazer    { color: var(--warn-text);   background: rgba(230, 180, 80, 0.13); border-color: rgba(230, 180, 80, 0.30); }
+.st-substituido{ color: var(--fg-3);     background: transparent; border-color: var(--gline-2); text-decoration: line-through; }
+
+/* ── Progresso ────────────────────────────────────────────────────── */
+.barra { height: 6px; border-radius: 999px; background: var(--gline); overflow: hidden; position: relative; }
+.barra > i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 999px; }
+.barra .b-recebidos { background: rgba(108, 160, 230, 0.55); }
+.barra .b-conferidos { background: var(--cta); box-shadow: 0 0 10px rgb(var(--destaque-rgb) / 0.6); }
+
+/* ── Seletor de mês ───────────────────────────────────────────────── */
+.mes-sel {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px;
+  background: var(--glass-2);
+  border: 1px solid var(--gline);
+  border-radius: 999px;
+}
+.mes-sel .mes-atual {
+  min-width: 150px;
+  text-align: center;
+  font-family: var(--serif);
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--gold-text);
+  letter-spacing: -0.01em;
+}
+.mes-sel button { width: 30px; height: 30px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; color: var(--fg-3); }
+.mes-sel button:hover { background: var(--glass-3); color: var(--fg); }
+
+/* ── Linhas de lista ──────────────────────────────────────────────── */
+.linha {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: var(--glass-2);
+  border: 1px solid var(--gline);
+  box-shadow: var(--ghl);
+  min-height: 56px;
+  transition: background var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease);
+}
+a.linha, button.linha { cursor: pointer; text-decoration: none; color: inherit; width: 100%; text-align: left; }
+.linha:hover { background: var(--glass-3); border-color: var(--gold-line); }
+.linha.is-on { border-color: var(--gold-line); background: var(--glass-3); }
+.linha-titulo { font-size: 14px; font-weight: 500; color: var(--fg); line-height: 1.3; }
+.linha-sub { font-size: 12px; color: var(--fg-3); line-height: 1.4; margin-top: 2px; }
+.lista { display: flex; flex-direction: column; gap: 8px; }
+.mes-cab {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  padding: 8px 4px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-4);
+  background: var(--grain), var(--glass-solid);
+  border-radius: 8px;
+}
+
+/* ── Grade de cartões por tipo (aba Arquivo) ──────────────────────── */
+.grade { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.cartao-tipo {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px;
+  border-radius: 16px;
+  background: var(--glass-2);
+  border: 1px solid var(--gline);
+  box-shadow: var(--ghl);
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  min-height: 44px;
+}
+.cartao-tipo:hover { background: var(--glass-3); border-color: var(--gold-line); }
+.icone-id {
+  width: 36px; height: 36px; border-radius: 11px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--gold-glow); border: 1px solid var(--gold-line); color: var(--gold-text);
+  flex-shrink: 0;
+}
+.icone-id svg { width: 17px; height: 17px; }
+.icone-id.neutro { background: var(--glass-2); border-color: var(--gline); color: var(--fg-3); }
+
+/* ── Chips de filtro ──────────────────────────────────────────────── */
+.chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  min-height: 30px; padding: 0 12px; border-radius: 999px;
+  background: var(--glass-2); border: 1px solid var(--gline);
+  font-size: 12px; font-weight: 500; color: var(--fg-2); cursor: pointer; white-space: nowrap;
+}
+.chip.active { background: var(--fg); color: var(--base); border-color: var(--fg); }
+.chip svg { width: 12px; height: 12px; }
+
+/* ── Vidro em modal e folha inferior ──────────────────────────────── */
+.overlay { position: fixed; inset: 0; z-index: 100; background: rgba(0,0,0,0.55); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); display: flex; align-items: flex-end; justify-content: center; }
+@media (min-width: 720px) { .overlay { align-items: center; padding: 24px; } }
+.modal {
+  width: 100%; max-width: 520px; max-height: calc(100dvh - 24px);
+  overflow-y: auto;
+  background: var(--grain), var(--glass), var(--glass-solid);
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(150%);
+  backdrop-filter: blur(var(--blur)) saturate(150%);
+  border: 1px solid var(--gline); box-shadow: var(--ghl), var(--gshadow);
+  border-radius: 22px 22px 0 0; padding: 20px 20px calc(20px + var(--safe-b));
+}
+@media (min-width: 720px) { .modal { border-radius: 22px; padding: 24px; } }
+.modal-cab { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+.modal-pe { display: flex; gap: 8px; justify-content: flex-end; margin-top: 18px; }
+
+/* ── Base sólida para menus suspensos ─────────────────────────────── */
+.menu-solido {
+  background: var(--grain), linear-gradient(160deg, rgba(255,255,255,.08), rgba(255,255,255,.02) 50%, rgba(0,0,0,.10)), var(--glass-solid);
+  border: 1px solid var(--gline); border-radius: 18px; box-shadow: var(--gshadow);
+}
+
+/* ── Anel de progresso vazado ─────────────────────────────────────── */
+.anel {
+  width: 38px; height: 38px; border-radius: 50%;
+  background: conic-gradient(var(--destaque) calc(var(--p, 0) * 1%), var(--gline) 0);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3.5px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3.5px));
+}
+.anel-wrap { position: relative; width: 38px; height: 38px; display: inline-flex; align-items: center; justify-content: center; }
+.anel-wrap .anel { position: absolute; inset: 0; }
+.anel-wrap span { font-family: var(--mono); font-size: 10px; font-weight: 600; color: var(--gold-text); }
+
+/* ── Três colunas no computador (tela da empresa) ─────────────────── */
+.tres-col { display: grid; grid-template-columns: 260px minmax(0, 1fr) minmax(280px, 360px); gap: 14px; min-height: 0; height: 100%; }
+@media (max-width: 1100px) { .tres-col { grid-template-columns: minmax(0, 1fr); } .tres-col > .col-lateral { display: none; } }
+.col { min-height: 0; overflow-y: auto; }
+
+/* ── Miniatura ────────────────────────────────────────────────────── */
+.mini { width: 44px; height: 56px; border-radius: 8px; overflow: hidden; background: var(--glass-2); border: 1px solid var(--gline); flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: var(--fg-4); }
+.mini img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+/* ── Toast ────────────────────────────────────────────────────────── */
+.toast { position: fixed; left: 16px; right: 16px; bottom: calc(var(--reserva-abas) + 4px); z-index: 90; }
+@media (min-width: 720px) { .toast { left: auto; right: 24px; bottom: 24px; width: 360px; } }
+.toast > div { padding: 12px 14px; border-radius: 14px; font-size: 13px; }
+
+/* ── Util ─────────────────────────────────────────────────────────── */
+.mono { font-family: var(--mono); }
+.serif { font-family: var(--serif); }
+.texto-destaque { color: var(--gold-text); }
+.titulo-pagina { font-family: var(--serif); font-weight: 700; font-size: 26px; letter-spacing: -0.02em; line-height: 1.15; margin: 0; }
+@media (min-width: 720px) { .titulo-pagina { font-size: 30px; } }
+.vazio { padding: 28px 16px; text-align: center; color: var(--fg-3); font-size: 13.5px; border: 1px dashed var(--gline); border-radius: 16px; }
+.campo { display: flex; flex-direction: column; gap: 6px; }
+.campo + .campo { margin-top: 12px; }
+select.input { appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 34px; }
+input[type="checkbox"].sw { accent-color: var(--destaque); width: 18px; height: 18px; }
+.rg { display: grid; gap: 10px; }
+.rg-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (min-width: 720px) { .rg-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); } .rg-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+
+/* Celular: o mesmo fundo, com o ângulo mais vertical e o brilho maior. */
+@media (max-width: 719px) {
+  .app-bg .bg-grad { background: linear-gradient(168deg, var(--orb1) 0%, var(--orb3) 22%, var(--gmid) 52%, var(--orb4) 100%); }
+  .app-bg .bg-glow { width: 110%; min-width: 0; left: -45%; top: -35%; }
+}

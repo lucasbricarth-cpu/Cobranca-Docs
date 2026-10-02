@@ -1,0 +1,1 @@
+{ "extends": ["next/core-web-vitals"], "ignorePatterns": ["leitor-dominio/", "public/sw.js", "public/opencv/"] }

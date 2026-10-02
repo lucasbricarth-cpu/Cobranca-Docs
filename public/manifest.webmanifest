@@ -1,0 +1,16 @@
+{
+  "name": "Portal de Documentos",
+  "short_name": "Documentos",
+  "description": "Documentos do escritório e do cliente, organizados por mês.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0F0E0C",
+  "theme_color": "#0F0E0C",
+  "lang": "pt-BR",
+  "icons": [
+    { "src": "/icone-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icone-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icone-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
