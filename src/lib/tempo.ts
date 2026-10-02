@@ -97,3 +97,11 @@ export function somarDias(data: string, n: number): string {
   const dt = new Date(Date.UTC(a, m - 1, d + n));
   return dt.toISOString().slice(0, 10);
 }
+
+/**
+ * Mês que a tela abre por padrão: o anterior, que é o que está sendo
+ * coletado agora (em outubro chegam os extratos de setembro).
+ */
+export function competenciaPadrao(instante: Date = new Date()): string {
+  return somarMeses(competenciaDoMes(instante), -1);
+}

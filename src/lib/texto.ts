@@ -44,7 +44,7 @@ export function extrairCnpjs(texto: string): string[] {
 /** Nome seguro para download no Windows: sem barra, acento ou caractere proibido. */
 export function nomeDeDownload(partes: string[], extensao: string): string {
   const limpo = partes
-    .map((p) => semAcento(p).replace(/[^A-Za-z0-9]+/g, '_').replace(/^_+|_+$/g, ''))
+    .map((p) => semAcento(p).replace(/[^A-Za-z0-9-]+/g, '_').replace(/^[_-]+|[_-]+$/g, ''))
     .filter(Boolean)
     .join('_');
   const ext = extensao.replace(/[^a-z0-9]/gi, '').toLowerCase();

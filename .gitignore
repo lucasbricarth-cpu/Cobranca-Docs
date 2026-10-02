@@ -13,3 +13,4 @@ coverage/
 leitor-dominio/node_modules/
 leitor-dominio/.env
 public/opencv/
+public/pdfjs/

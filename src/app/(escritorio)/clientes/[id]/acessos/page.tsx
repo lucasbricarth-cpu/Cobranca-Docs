@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { uuidOuNada } from '@/lib/url';
 import { ChevronLeft } from 'lucide-react';
 import { exigirFuncionario } from '@/lib/auth/sessao';
 import { dadosDaEmpresa } from '@/lib/consultas/empresas';
@@ -14,6 +15,7 @@ export const metadata = { title: 'Acessos' };
 /** Logins de cliente ligados à empresa: convidar, desativar, vínculos. Os contatos da Domínio aparecem como sugestão. */
 export default async function PaginaAcessos({ params }: { params: { id: string } }) {
   await exigirFuncionario();
+  if (!uuidOuNada(params.id)) notFound();
   const empresa = await dadosDaEmpresa(params.id);
   if (!empresa) notFound();
   const [logins, contatos, outras] = await Promise.all([

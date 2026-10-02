@@ -50,6 +50,13 @@ export async function semear(pool: Pool) {
     // Bruno cuida da folha da Padaria (vê os sensíveis dela); Ana é admin e vê todos.
     await c.query(`INSERT INTO responsaveis_empresa (empresa_id, usuario_id, papel, origem) VALUES ($1, $2, 'folha', 'app') ON CONFLICT DO NOTHING`, [ids[101], func]);
     await c.query(`INSERT INTO contatos_empresa (empresa_id, nome, email, telefone, telefone_e164) VALUES ($1, 'Carlos', 'carlos@padaria.com.br', '(11) 98888-7777', '5511988887777') ON CONFLICT DO NOTHING`, [ids[101]]);
+    // Subtipos de Extrato (um por conta), como faz a sincronização do leitor.
+    const temSubtipos = (await c.query(`SELECT to_regclass('public.subtipos') AS t`)).rows[0].t;
+    if (temSubtipos) {
+      await c.query(`INSERT INTO subtipos (empresa_id, tipo_id, conta_bancaria_id)
+        SELECT cb.empresa_id, t.id, cb.id FROM contas_bancarias cb CROSS JOIN tipos_documento t
+        WHERE t.subtipo_origem = 'contas' AND t.ativo ON CONFLICT (tipo_id, conta_bancaria_id) DO NOTHING`);
+    }
     await c.query('COMMIT');
     return { admin, func, login, login2, empresas: ids };
   } catch (e) {

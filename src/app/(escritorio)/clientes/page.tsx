@@ -1,6 +1,6 @@
 import { exigirFuncionario } from '@/lib/auth/sessao';
 import { listarEmpresas, funcionariosAtivos } from '@/lib/consultas/empresas';
-import { competenciaDoMes } from '@/lib/tempo';
+import { competenciaPadrao } from '@/lib/tempo';
 import { ListaClientes } from '@/components/clientes/ListaClientes';
 
 export const metadata = { title: 'Clientes' };
@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic';
 export default async function Clientes({ searchParams }: { searchParams: { q?: string; resp?: string } }) {
   const s = await exigirFuncionario();
   const [empresas, funcionarios] = await Promise.all([
-    listarEmpresas({ busca: searchParams.q, responsavelId: searchParams.resp, competencia: competenciaDoMes() }),
+    listarEmpresas({ busca: searchParams.q, responsavelId: searchParams.resp, competencia: competenciaPadrao() }),
     funcionariosAtivos(),
   ]);
   return (

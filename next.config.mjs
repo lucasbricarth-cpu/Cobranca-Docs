@@ -12,6 +12,7 @@ const nextConfig = {
       ] },
     ];
   },
-  experimental: { serverComponentsExternalPackages: ['pg', 'sharp', 'archiver', 'web-push'] },
+  // Pacotes nativos ou pesados ficam fora do bundle do servidor (carregados do node_modules).
+  experimental: { serverComponentsExternalPackages: ['pg', 'sharp', 'archiver', 'web-push', '@napi-rs/canvas', 'pdfjs-dist', 'pdf-lib', '@aws-sdk/client-s3', '@aws-sdk/client-ses', '@aws-sdk/s3-request-presigner'] },
 };
 export default nextConfig;

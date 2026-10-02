@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import type { ReactNode } from 'react';
+import { useEffect, type ReactNode } from 'react';
 import { Home, Users, Inbox, ClipboardCheck, CalendarDays, Settings, MoreHorizontal, LogOut } from 'lucide-react';
 import { useBackgroundPrefs } from '@/components/design/BackgroundPrefsProvider';
 import { Marca } from '@/components/ui/Marca';
@@ -40,6 +40,13 @@ export function CascaEscritorio({ children, nome, papel, contadores = {}, titulo
   const pathname = usePathname();
   const router = useRouter();
   const { esquecer } = useBackgroundPrefs();
+  const pendencias = (contadores.conferir ?? 0) + (contadores.naoReconhecidos ?? 0);
+  // Contador no ícone do app instalado (Badging API), onde o sistema suporta.
+  useEffect(() => {
+    const n = navigator as Navigator & { setAppBadge?: (n?: number) => Promise<void>; clearAppBadge?: () => Promise<void> };
+    if (pendencias > 0) n.setAppBadge?.(pendencias).catch(() => undefined);
+    else n.clearAppBadge?.().catch(() => undefined);
+  }, [pendencias]);
   const ativo = (href: string) => pathname === href || pathname.startsWith(`${href}/`) || (href === '/mais' && ['/conferir', '/agenda', '/ajustes', '/mais'].some((p) => pathname.startsWith(p)));
 
   async function sair() {
@@ -89,7 +96,7 @@ export function CascaEscritorio({ children, nome, papel, contadores = {}, titulo
 
       <nav className="tabbar so-cel" aria-label="Abas">
         {ABAS.map(({ href, rotulo, Icone, contador }) => {
-          const n = contador ? contadores[contador] : undefined;
+          const n = contador ? pendencias : undefined;
           return (
             <Link key={href} href={href} className={`tabbar-item ${ativo(href) ? 'active' : ''}`} aria-current={ativo(href) ? 'page' : undefined}>
               <Icone aria-hidden />

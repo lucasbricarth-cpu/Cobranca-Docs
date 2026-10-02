@@ -1942,3 +1942,63 @@ input[type="checkbox"].sw { accent-color: var(--destaque); width: 18px; height: 
   .app-bg .bg-grad { background: linear-gradient(168deg, var(--orb1) 0%, var(--orb3) 22%, var(--gmid) 52%, var(--orb4) 100%); }
   .app-bg .bg-glow { width: 110%; min-width: 0; left: -45%; top: -35%; }
 }
+
+/* ── Tela da empresa: três colunas no computador ───────────────────── */
+.casca-conteudo:has(> .tres-col) { padding: 14px; overflow: hidden; }
+.tres-col { height: 100%; }
+.tres-col > .col { overflow-y: auto; min-height: 0; }
+.tres-col > .col-meio { padding: 0 4px 32px; }
+.col-clientes { padding-right: 2px; }
+@media (max-width: 1099px) { .col-clientes { display: none; } }
+@media (max-width: 767px) {
+  .casca-conteudo:has(> .tres-col) { padding: 14px 16px var(--reserva-abas); overflow: visible; }
+  .tres-col { display: block; height: auto; }
+  .tres-col > .col { overflow: visible; }
+}
+
+/* Topo fixo da empresa (nome, CNPJ, responsável e mês). */
+.empresa-topo {
+  position: sticky; top: 0; z-index: 8;
+  margin: 0 -4px 12px; padding: 4px 4px 12px;
+  background: var(--grain), linear-gradient(var(--glass-solid), var(--glass-solid));
+  border-bottom: 1px solid var(--gline-2);
+}
+@media (min-width: 768px) {
+  /* No computador o topo fica sobre o painel de vidro: mesma cor do vidro, opaca. */
+  .empresa-topo { background: var(--grain), var(--glass), var(--glass-solid); border-radius: 0 0 14px 14px; }
+}
+@media (max-width: 767px) { .empresa-topo { top: calc(var(--topo-h) + var(--safe-t)); margin: 0 -16px 12px; padding: 8px 16px 12px; } }
+.col-meio .mes-cab { top: var(--empresa-topo-h, 0px); }
+@media (max-width: 767px) { .col-meio .mes-cab { top: calc(var(--topo-h) + var(--safe-t) + var(--empresa-topo-h, 0px)); } }
+
+/* Painel do documento: coluna da direita (computador) ou folha cheia (telas menores). */
+.painel-doc {
+  display: flex; flex-direction: column; min-height: 0; overflow: hidden;
+  background: var(--glass-2); border: 1px solid var(--gline); border-radius: 18px; box-shadow: var(--ghl);
+}
+.painel-doc.vazio { justify-content: center; padding: 16px; }
+.painel-doc-cab { display: flex; align-items: center; gap: 8px; padding: 12px 12px 10px 16px; border-bottom: 1px solid var(--gline-2); }
+.painel-doc-corpo { flex: 1; overflow-y: auto; padding: 12px 14px 18px; display: flex; flex-direction: column; gap: 12px; }
+.painel-doc-ver { border-radius: 12px; overflow: hidden; background: #fff; min-height: 220px; display: flex; align-items: stretch; justify-content: center; }
+.painel-doc-ver iframe { width: 100%; min-height: 420px; border: 0; background: #fff; }
+.painel-doc-ver img { max-width: 100%; max-height: 520px; object-fit: contain; display: block; margin: auto; }
+.painel-doc-ver .vazio { background: var(--glass-2); width: 100%; border: 0; display: flex; flex-direction: column; justify-content: center; }
+.painel-doc-dl { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; font-size: 12.5px; margin: 0; }
+.painel-doc-dl dt { color: var(--fg-4); }
+.painel-doc-dl dd { margin: 0; color: var(--fg-2); }
+@media (max-width: 1099px) {
+  .painel-doc.vazio { display: none; }
+  .painel-doc:not(.vazio) {
+    position: fixed; inset: 0; z-index: 95; border-radius: 0; border: 0;
+    background: var(--grain), var(--glass), var(--glass-solid);
+    padding-top: var(--safe-t); padding-bottom: var(--safe-b);
+  }
+  .painel-doc-ver iframe { min-height: 60dvh; }
+}
+/* Celular: títulos de linha quebram em até duas linhas em vez de cortar cedo. */
+@media (max-width: 767px) {
+  .linha .linha-titulo.truncate, .linha .linha-titulo .truncate {
+    white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .linha .pill { white-space: nowrap; }
+}
