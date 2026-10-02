@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import type { ReactNode } from 'react';
-import { ListChecks, FolderOpen, Camera } from 'lucide-react';
+import { ListChecks, FolderOpen, Camera, CircleUser } from 'lucide-react';
 import { Marca } from '@/components/ui/Marca';
 
 /**
@@ -19,11 +19,12 @@ const ABAS = [
 
 export function CascaCliente({ children, titulo, pendentes }: { children: ReactNode; titulo?: string; pendentes?: number }) {
   const pathname = usePathname();
-  const ativo = (href: string) => (href === '/cliente' ? pathname === '/cliente' || pathname.startsWith('/cliente/item') || pathname.startsWith('/cliente/conta') : pathname.startsWith(href));
+  const ativo = (href: string) => (href === '/cliente' ? pathname === '/cliente' || pathname.startsWith('/cliente/item') : pathname.startsWith(href));
   return (
     <div className="casca-cli">
       <header className="casca-m-topo">
         {titulo ? <><Marca compacta /><span className="h2 truncate">{titulo}</span></> : <Marca />}
+        <Link href="/cliente/conta" className="btn btn-ghost btn-icon ml-auto" aria-label="Minha conta" style={{ width: 40, height: 40 }}><CircleUser size={20} /></Link>
       </header>
       <main className="casca-cli-conteudo">{children}</main>
       <nav className="tabbar tabbar-cli" aria-label="Abas">

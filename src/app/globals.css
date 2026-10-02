@@ -1702,7 +1702,7 @@ body {
 }
 @media (min-width: 768px) {
   .casca-cli .casca-m-topo { padding-left: max(16px, calc((100vw - 640px) / 2)); padding-right: max(16px, calc((100vw - 640px) / 2)); }
-  .tabbar-cli { left: 50%; right: auto; width: 560px; transform: translateX(-50%); }
+  .tabbar.tabbar-cli { left: 50%; right: auto; width: 560px; transform: translateX(-50%); }
   .casca-cli-conteudo { padding-top: 24px; }
 }
 

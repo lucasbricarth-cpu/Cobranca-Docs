@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Palette, FileText, MessageCircle, Users, Shield, ChevronRight, Sparkles } from 'lucide-react';
+import { Palette, FileText, MessageCircle, Users, Shield, ChevronRight, Sparkles, Database } from 'lucide-react';
 import { exigirFuncionario } from '@/lib/auth/sessao';
 
 export const metadata = { title: 'Ajustes' };
@@ -11,6 +11,7 @@ export default async function Ajustes() {
     { href: '/ajustes/classificacao', rotulo: 'Classificação', sub: 'Arquivamento automático por tipo e taxa de acerto', Icone: Sparkles, admin: true },
     { href: '/ajustes/mensagens', rotulo: 'Mensagens', sub: 'Textos de push, e-mail e WhatsApp', Icone: MessageCircle, admin: true },
     { href: '/ajustes/usuarios', rotulo: 'Usuários', sub: 'Funcionários, papéis e responsáveis', Icone: Users, admin: true },
+    { href: '/ajustes/dominio', rotulo: 'Leitor da Domínio', sub: 'Último envio e diagnóstico inicial', Icone: Database, admin: true },
     { href: '/ajustes/guarda', rotulo: 'Guarda e exclusões', sub: 'Documentos vencidos esperando aprovação', Icone: Shield, admin: true },
   ].filter((i) => !i.admin || s.papel === 'admin');
   return (

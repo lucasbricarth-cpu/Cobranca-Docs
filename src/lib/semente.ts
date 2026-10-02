@@ -6,7 +6,7 @@ export async function semear(pool: Pool) {
   try {
     await c.query('BEGIN');
     const admin = (await c.query(
-      `INSERT INTO usuarios (nome, email, papel, i_responsavel_dominio, responsavel_folha) VALUES ('Ana Lima', 'ana@escritorio.com.br', 'admin', 1, true)
+      `INSERT INTO usuarios (nome, email, papel, i_responsavel_dominio) VALUES ('Ana Lima', 'ana@escritorio.com.br', 'admin', 1)
        ON CONFLICT (email) DO UPDATE SET nome = EXCLUDED.nome RETURNING id`)).rows[0].id as string;
     const func = (await c.query(
       `INSERT INTO usuarios (nome, email, papel, i_responsavel_dominio) VALUES ('Bruno Costa', 'bruno@escritorio.com.br', 'funcionario', 2)
@@ -44,6 +44,11 @@ export async function semear(pool: Pool) {
        ON CONFLICT (email) DO UPDATE SET nome = EXCLUDED.nome RETURNING id`, [admin])).rows[0].id as string;
     await c.query(`INSERT INTO vinculos_login_empresa (login_id, empresa_id) VALUES ($1, $2), ($1, $3), ($4, $5) ON CONFLICT DO NOTHING`,
       [login, ids[101], ids[103], login2, ids[102]]);
+    for (const e of empresas) {
+      await c.query(`INSERT INTO responsaveis_empresa (empresa_id, usuario_id, papel, origem) VALUES ($1, $2, 'geral', 'app') ON CONFLICT DO NOTHING`, [ids[e.codi], e.resp]);
+    }
+    // Bruno cuida da folha da Padaria (vê os sensíveis dela); Ana é admin e vê todos.
+    await c.query(`INSERT INTO responsaveis_empresa (empresa_id, usuario_id, papel, origem) VALUES ($1, $2, 'folha', 'app') ON CONFLICT DO NOTHING`, [ids[101], func]);
     await c.query(`INSERT INTO contatos_empresa (empresa_id, nome, email, telefone, telefone_e164) VALUES ($1, 'Carlos', 'carlos@padaria.com.br', '(11) 98888-7777', '5511988887777') ON CONFLICT DO NOTHING`, [ids[101]]);
     await c.query('COMMIT');
     return { admin, func, login, login2, empresas: ids };

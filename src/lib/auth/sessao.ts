@@ -13,7 +13,7 @@ const DIAS_FUNCIONARIO = 30;
 const DIAS_CLIENTE = 365;
 
 export type Papel = 'admin' | 'funcionario';
-export interface Funcionario { tipo: 'funcionario'; id: string; nome: string; email: string; papel: Papel; responsavelFolha: boolean }
+export interface Funcionario { tipo: 'funcionario'; id: string; nome: string; email: string; papel: Papel }
 export interface Cliente { tipo: 'cliente'; id: string; nome: string; email: string; empresas: { id: string; nome: string; cnpj: string }[] }
 export type Sessao = Funcionario | Cliente;
 
@@ -52,9 +52,9 @@ export async function sessaoPorToken(token: string | undefined): Promise<Sessao 
   );
   if (!s) return null;
   if (s.tipo === 'funcionario' && s.usuario_id) {
-    const u = await um<{ id: string; nome: string; email: string; papel: Papel; responsavel_folha: boolean }>(
-      `SELECT id, nome, email, papel, responsavel_folha FROM usuarios WHERE id = $1 AND ativo`, [s.usuario_id]);
-    return u ? { tipo: 'funcionario', id: u.id, nome: u.nome, email: u.email, papel: u.papel, responsavelFolha: u.responsavel_folha } : null;
+    const u = await um<{ id: string; nome: string; email: string; papel: Papel }>(
+      `SELECT id, nome, email, papel FROM usuarios WHERE id = $1 AND ativo`, [s.usuario_id]);
+    return u ? { tipo: 'funcionario', id: u.id, nome: u.nome, email: u.email, papel: u.papel } : null;
   }
   if (s.tipo === 'cliente' && s.login_id) {
     const l = await um<{ id: string; nome: string; email: string }>(`SELECT id, nome, email FROM logins_cliente WHERE id = $1 AND ativo`, [s.login_id]);

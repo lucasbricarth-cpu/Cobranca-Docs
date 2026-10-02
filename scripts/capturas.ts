@@ -54,6 +54,24 @@ async function paleta(p: import('playwright').Page, id: string, escuro = true) {
 const browser = await chromium.launch({ executablePath: CHROME, args: ['--no-sandbox'] });
 const { pc, cel } = await contextos(browser);
 
+// Rotas com {codi} (ex.: /clientes/{101}) viram o id da empresa da semente com aquele codi_emp.
+import pg from 'pg';
+import { carregarEnv } from './env.ts';
+carregarEnv();
+const banco = new pg.Client({ connectionString: process.env.DATABASE_URL });
+await banco.connect();
+const idsPorCodi = new Map((await banco.query<{ codi_emp: number; id: string }>('SELECT codi_emp, id FROM empresas')).rows.map((r) => [String(r.codi_emp), r.id]));
+async function resolver(rota: string): Promise<string> {
+  let r = rota.replace(/\{(\d+)\}/g, (_, c) => idsPorCodi.get(c) ?? c);
+  // {doc:...} = id do primeiro documento cujo nome original contém o texto.
+  const m = r.match(/\{doc:([^}]+)\}/);
+  if (m) {
+    const d = await banco.query<{ id: string }>('SELECT id FROM documentos WHERE nome_original ILIKE $1 ORDER BY recebido_em DESC LIMIT 1', [`%${m[1]}%`]).catch(() => ({ rows: [] as { id: string }[] }));
+    r = r.replace(m[0], d.rows[0]?.id ?? 'x');
+  }
+  return r;
+}
+const nomeDaRota = (rota: string) => rota.replace(/\{(\d+)\}/g, 'e$1').replace(/\{doc:[^}]+\}/g, 'doc').replace(/[?&=]/g, '-').replace(/\//g, '-');
 const PAGINAS_FUNC = (process.env.CAPTURAS_FUNC || '/inicio,/ajustes/estetica').split(',');
 const PAGINAS_CLI = (process.env.CAPTURAS_CLI || '/cliente').split(',');
 const ADMIN = 'ana@escritorio.com.br';
@@ -73,9 +91,9 @@ if (quer('paletas')) {
 if (quer('funcionario')) {
   for (const rota of PAGINAS_FUNC) {
     for (const [ctx, sufixo] of [[pc, 'pc'], [cel, 'cel']] as const) {
-      const p = await entrar(ctx, ADMIN, rota);
+      const p = await entrar(ctx, ADMIN, await resolver(rota));
       await paleta(p, 'dourado', true);
-      await foto(p, `funcionario${rota.replace(/\//g, '-')}-${sufixo}`);
+      await foto(p, `funcionario${nomeDaRota(rota)}-${sufixo}`);
       await p.close();
     }
   }
@@ -83,8 +101,8 @@ if (quer('funcionario')) {
 if (quer('cliente')) {
   for (const rota of PAGINAS_CLI) {
     for (const [ctx, sufixo] of [[pc, 'pc'], [cel, 'cel']] as const) {
-      const p = await entrar(ctx, CLIENTE, rota);
-      await foto(p, `cliente${rota.replace(/\//g, '-')}-${sufixo}`);
+      const p = await entrar(ctx, CLIENTE, await resolver(rota));
+      await foto(p, `cliente${nomeDaRota(rota)}-${sufixo}`);
       await p.close();
     }
   }
@@ -119,3 +137,4 @@ if (quer('barras')) {
   }
 }
 await browser.close();
+await banco.end();

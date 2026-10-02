@@ -19,8 +19,8 @@ function urlDoBanco(): string {
 
 export function pool(): Pool {
   if (!global.__pdPool) {
-    global.__pdPool = new Pool({ connectionString: urlDoBanco(), max: 10 });
-    global.__pdPool.on('connect', (c) => { c.query(`SET TIME ZONE 'America/Sao_Paulo'`).catch(() => undefined); });
+    // O fuso da sessão do banco é o de São Paulo (now()::date e afins), nunca o do servidor.
+    global.__pdPool = new Pool({ connectionString: urlDoBanco(), max: 10, options: '-c TimeZone=America/Sao_Paulo' });
   }
   return global.__pdPool;
 }

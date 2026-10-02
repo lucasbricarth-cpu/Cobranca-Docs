@@ -1,0 +1,19 @@
+{
+  "name": "leitor-dominio",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Leitor local da Domínio: lê (só SELECT) e envia ao Portal de Documentos, de dentro para fora.",
+  "type": "module",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "sincronizar": "node --no-warnings --experimental-strip-types src/leitor.ts",
+    "diagnostico": "node --no-warnings --experimental-strip-types src/leitor.ts --diagnostico",
+    "testar-conexao": "node --no-warnings --experimental-strip-types src/leitor.ts --testar"
+  },
+  "dependencies": {
+    "odbc": "^2.4.9"
+  },
+  "optionalDependencies": {
+    "pg": "^8.13.1"
+  }
+}
