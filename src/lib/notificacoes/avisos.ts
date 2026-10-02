@@ -45,7 +45,8 @@ export async function avisarClientes(itemIds: string[], etapa: EtapaCliente): Pr
     `SELECT l.id AS login_id, l.nome, l.email, i.id AS item_id, e.nome AS empresa, to_char(i.competencia, 'YYYY-MM-DD') AS competencia
      FROM itens_pedido i JOIN empresas e ON e.id = i.empresa_id
      JOIN vinculos_login_empresa v ON v.empresa_id = i.empresa_id JOIN logins_cliente l ON l.id = v.login_id AND l.ativo
-     WHERE i.id = ANY($1) AND (i.status IN ('pendente', 'refazer'))`, [itemIds]);
+     WHERE i.id = ANY($1) AND (i.status IN ('pendente', 'refazer'))
+       AND (e.piloto OR NOT EXISTS (SELECT 1 FROM empresas p WHERE p.piloto))`, [itemIds]); // modo piloto: só as empresas do piloto
   const porLogin = new Map<string, typeof destinos>();
   for (const d of destinos) porLogin.set(d.login_id, [...(porLogin.get(d.login_id) ?? []), d]);
   const base = etapa.startsWith('refazer') ? 'refazer' : etapa;

@@ -2034,3 +2034,19 @@ input[type="checkbox"].selecao { width: 18px; height: 18px; flex: none; accent-c
 .painel-doc-acessos summary::-webkit-details-marker { display: none; }
 .painel-doc-acessos summary::before { content: '▸ '; }
 .painel-doc-acessos[open] summary::before { content: '▾ '; }
+
+/* Tabela de métricas (Piloto). */
+.tabela { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.tabela th { text-align: left; font: 500 11px var(--mono); letter-spacing: .04em; text-transform: uppercase; color: var(--fg-4); padding: 12px 14px; border-bottom: 1px solid var(--gline); white-space: nowrap; vertical-align: bottom; }
+.tabela td { padding: 11px 14px; border-bottom: 1px solid var(--gline-2); color: var(--fg-2); white-space: nowrap; }
+.tabela tbody tr:last-child td { border-bottom: 0; }
+.tabela tbody tr:hover td { background: var(--glass-2); }
+.tabela td:first-child { color: var(--fg); font-weight: 500; }
+
+/* Gráfico de barras simples (volume do WhatsApp). */
+.grafico-barras { position: relative; display: flex; align-items: flex-end; gap: 6px; height: 140px; padding-bottom: 18px; }
+.grafico-coluna { flex: 1; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 4px; }
+.grafico-barra { width: 100%; max-width: 26px; border-radius: 6px 6px 3px 3px; background: linear-gradient(180deg, var(--gold), color-mix(in srgb, var(--gold) 55%, transparent)); box-shadow: 0 0 10px var(--gold-glow); }
+.grafico-rotulo { position: absolute; bottom: -16px; font-size: 10px; color: var(--fg-4); }
+.grafico-coluna { position: relative; }
+.grafico-limite { position: absolute; left: 0; right: 0; border-top: 1px dashed var(--warn); opacity: .7; }

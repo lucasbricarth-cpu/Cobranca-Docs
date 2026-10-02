@@ -38,6 +38,7 @@ async function empresasDoModelo(m: Modelo, diaHoje: number, ano: number, mes: nu
     `SELECT e.id, coalesce(a.dia_criacao, $2) AS dia_criacao FROM empresas e
      LEFT JOIN agenda_empresa a ON a.empresa_id = e.id AND a.modelo_id = $1
      WHERE e.ativo AND coalesce(a.ativo, true)
+       AND (e.piloto OR NOT EXISTS (SELECT 1 FROM empresas p WHERE p.piloto))  -- modo piloto: só as empresas do piloto
        AND (CASE WHEN $3 = 'folha' THEN e.tem_folha ELSE e.perfil = $3 END)`, [m.id, m.dia_criacao, m.perfil]);
   return linhas.filter((l) => diaNoMes(ano, mes, l.dia_criacao) === diaHoje);
 }
