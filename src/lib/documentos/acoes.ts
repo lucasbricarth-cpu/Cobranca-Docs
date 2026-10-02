@@ -2,6 +2,7 @@ import type { PoolClient } from 'pg';
 import { transacao, um } from '@/lib/db';
 import { ErroApi } from '@/lib/api';
 import type { Sessao } from '@/lib/auth/sessao';
+import { registrarCorrecao } from '@/lib/classificacao';
 
 /**
  * Ações sobre documentos, sempre com auditoria: toda troca de empresa, tipo,
@@ -62,7 +63,11 @@ export async function classificarDocumento(documentoId: string, nova: Classifica
               conferido_por = CASE WHEN $6 = 'conferido' THEN $7::uuid ELSE conferido_por END
        WHERE id = $1`, [documentoId, nova.empresaId, nova.tipoId, nova.subtipoId, nova.competencia, novoStatus, s.id]);
     if (mudou) await registrarAuditoria(c, documentoId, 'classificado', de, para, quem);
-    if (conferir) await registrarAuditoria(c, documentoId, 'conferido', { status: d.status }, { status: 'conferido' }, quem);
+    if (conferir) {
+      await registrarAuditoria(c, documentoId, 'conferido', { status: d.status }, { status: 'conferido' }, quem);
+      // Correção do funcionário (sugestão × escolha final), para medir o acerto por tipo.
+      await registrarCorrecao(c, documentoId, s.id);
+    }
 
     // Saiu do item antigo? O item volta a pendente (o arquivo não é apagado).
     if (d.item_id && mudou) {

@@ -9,6 +9,7 @@ export const DadosTipo = z.object({
   guarda_meses: z.number().int().min(1).max(1200),
   icone: z.string().max(40).default('file-text'),
   ativo: z.boolean().default(true),
+  arquivamento_automatico: z.boolean().optional(),
 });
 
 export interface Tipo { id: string; nome: string; subtipo_origem: 'contas' | 'cartoes' | 'livre' | null; regra_mes: 'anterior' | 'atual'; sensivel: boolean; guarda_meses: number; icone: string; ordem: number; ativo: boolean; arquivamento_automatico: boolean }

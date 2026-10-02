@@ -179,7 +179,7 @@ if (quer('envio')) {
     pg.drawText(texto, { x: 40, y: 780, size: 14, font: f });
     return Buffer.from(await d.save());
   };
-  const casos: [string, string][] = [['com-cnpj', 'Comprovante de pagamento  CNPJ 11.222.333/0001-81'], ['sem-cnpj', 'Comprovante de pagamento']];
+  const casos: [string, string][] = [['com-cnpj', 'Itau Extrato  Conta 1056-7  CNPJ 11.222.333/0001-81'], ['sem-cnpj', 'Comprovante de pagamento']];
   for (const [nome, texto] of casos) {
     for (const [ctx, sufixo] of [[pc, 'pc'], [cel, 'cel']] as const) {
       if (nome === 'sem-cnpj' && sufixo === 'pc') continue;
@@ -188,7 +188,7 @@ if (quer('envio')) {
       await escolha.setFiles({ name: `${nome}-${Date.now()}.pdf`, mimeType: 'application/pdf', buffer: await pdfCom(`${texto}  ${Date.now()}`) });
       await p.getByRole('button', { name: 'Não', exact: true }).click();
       await p.waitForSelector('text=Confirmar envio', { timeout: 30000 });
-      await p.waitForTimeout(800);
+      await p.waitForTimeout(1500); // tipos, subtipos e mês carregam no popup
       await foto(p, `cliente-popup-${nome}-${sufixo}`);
       await p.close();
     }

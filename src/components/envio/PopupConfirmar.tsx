@@ -62,9 +62,10 @@ export function PopupConfirmar({ aberto, analise, item, empresas, sensivel, toke
     api<{ opcoes: OpcoesMes }>(`/api/envios/mes?${p}`, 'GET', undefined, token).then((r) => {
       if (!r.ok) return;
       setOpMes(r.opcoes);
-      if (r.opcoes.modo === 'regra') setMes(r.opcoes.competencia.slice(0, 7));
+      // Regra do tipo: preenchida (e editável). Se o XML/OFX trouxe a data exata, ela vale como ponto de partida.
+      if (r.opcoes.modo === 'regra') setMes((analise?.sugestao?.competenciaLida ?? r.opcoes.competencia).slice(0, 7));
     });
-  }, [aberto, empresaId, tipoId, subtipoId, item, token]);
+  }, [aberto, empresaId, tipoId, subtipoId, item, token, analise?.sugestao?.competenciaLida]);
 
   const mesOk = opMes && (opMes.modo !== 'escolher' || Boolean(mes)) && (opMes.modo !== 'regra' || Boolean(mes));
   const pronto = Boolean(empresaId && tipoId && (!precisaSub || subtipoId) && mesOk);

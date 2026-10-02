@@ -12,7 +12,7 @@ const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}">
     <rect x="0" y="0" width="440" height="580" fill="#f6f3ec"/>
     <rect x="0" y="0" width="440" height="70" fill="#ec5c0d"/>
     <text x="30" y="46" font-family="sans-serif" font-size="28" font-weight="700" fill="#fff">Itaú · Extrato</text>
-    <text x="30" y="120" font-family="sans-serif" font-size="15" fill="#333">Agência 0912  Conta 45567-0</text>
+    <text x="30" y="120" font-family="sans-serif" font-size="15" fill="#333">Agência 0912  Conta 1056-7</text>
     <text x="30" y="145" font-family="sans-serif" font-size="15" fill="#333">CNPJ 11.222.333/0001-81</text>
     ${linhas}
   </g></svg>`;

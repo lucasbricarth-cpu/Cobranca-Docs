@@ -44,14 +44,16 @@ export async function semearDocumentos() {
     registrarEnvio({ dados, nomeOriginal: nome, origem: 'app', empresaId: padaria, loginId: login, ...o });
 
   const docs = {
-    itau: await env('extrato_itau_set.pdf', await pdfDemo('Itaú · Extrato', ['Agência 0912  Conta 45567-0', 'PADARIA DO BAIRRO LTDA  CNPJ 11.222.333/0001-81', `Período: ${mes.slice(5, 7)}/${mes.slice(0, 4)}`]), { tipoId: tipo['Extrato bancário'], subtipoId: itau, competencia: mes, itemId: iItau, origem: 'whatsapp', whatsappNumero: '5511988887777' }),
+    itau: await env('extrato_itau_set.pdf', await pdfDemo('Itaú · Extrato', ['Agência 0912  Conta 1056-7', 'PADARIA DO BAIRRO LTDA  CNPJ 11.222.333/0001-81', `Período: ${mes.slice(5, 7)}/${mes.slice(0, 4)}`]), { tipoId: tipo['Extrato bancário'], subtipoId: itau, competencia: mes, itemId: iItau, origem: 'whatsapp', whatsappNumero: '5511988887777' }),
     itauV1: await env('IMG_2031.jpg', await fotoDemo('Itaú extrato (foto)', '#e9e2d2'), { tipoId: tipo['Extrato bancário'], subtipoId: itau, competencia: mesAnt, itemId: iItauAnt }),
-    itauAnt: await env('extrato_itau_ago.pdf', await pdfDemo('Itaú · Extrato', ['Agência 0912  Conta 45567-0', `Período: ${mesAnt.slice(5, 7)}/${mesAnt.slice(0, 4)}`]), { tipoId: tipo['Extrato bancário'], subtipoId: itau, competencia: mesAnt, itemId: iItauAnt }),
+    itauAnt: await env('extrato_itau_ago.pdf', await pdfDemo('Itaú · Extrato', ['Agência 0912  Conta 1056-7', `Período: ${mesAnt.slice(5, 7)}/${mesAnt.slice(0, 4)}`]), { tipoId: tipo['Extrato bancário'], subtipoId: itau, competencia: mesAnt, itemId: iItauAnt }),
     sicAnt: await env('sicredi_agosto.pdf', await pdfDemo('Sicredi · Extrato', ['Cooperativa 0710  Conta 12092-1', `Período: ${mesAnt.slice(5, 7)}/${mesAnt.slice(0, 4)}`]), { tipoId: tipo['Extrato bancário'], subtipoId: sicredi, competencia: mesAnt, itemId: iSicAnt }),
     nfe: await env('NFe_entrada_4471.xml', xmlNfeDemo('45723174000110', '11222333000181', `${mes.slice(0, 8)}12`, 4471), { tipoId: tipo['Notas fiscais de entrada'], competencia: mes, itemId: iNfe }),
     nfs: await env('notas_saida.jpg', await fotoDemo('Notas de saída', '#d9d3c4'), { tipoId: tipo['Notas fiscais de saída'], competencia: mes, itemId: iNfs }),
     naoRec: await env('documento.pdf', await pdfDemo('Comprovante', ['Documento sem tipo identificado', 'Recebido sem pedido']), { tipoId: null, competencia: null }),
     atestado: await env('atestado_joao.jpg', await fotoDemo('Atestado médico', '#f2f2f2'), { tipoId: tipo['Atestados e exames de funcionário'], competencia: mes, sensivel: true }),
+    // Chega pelo WhatsApp sem tipo: a classificação (IA) sugere "Extrato bancário › Itaú final 0567".
+    viaWhats: await env('extrato_whatsapp_out.pdf', await pdfDemo('Itaú · Extrato', ['Agência 0912  Conta 1056-7', 'PADARIA DO BAIRRO LTDA  CNPJ 11.222.333/0001-81', 'Período: 10/2026']), { tipoId: null, competencia: `${somarMeses(mes, 1)}`, origem: 'whatsapp', whatsappNumero: '5511988887777' }),
     semEmpresa: await env('IMG-20261001-WA0007.jpg', await fotoDemo('Boleto', '#efe9dc'), { empresaId: null, loginId: null, origem: 'whatsapp', whatsappNumero: '5521977776666' }),
   };
   for (let i = 0; i < 4 && (await rodarFila(50)) > 0; i++) { /* processa tudo */ }

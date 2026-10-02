@@ -55,7 +55,7 @@ export interface Analise {
   tipoReal: string;
   cnpjs: string[];
   empresaSugerida: string | null;
-  sugestao: { tipoId: string; subtipoId: string | null; rotulo: string } | null;
+  sugestao: { tipoId: string | null; subtipoId: string | null; rotulo: string; competenciaLida?: string | null; novaConta?: string | null } | null;
   avisos: string[];
 }
 
@@ -82,13 +82,18 @@ export async function analisarEnvio(ator: Ator, uploadId: string, o: { sensivel:
   const empresaSugerida = item ? item.empresa_id : doLogin.length === 1 ? doLogin[0].id : null;
 
   let sugestao: Analise['sugestao'] = null;
+  let cnpjsLidos = cnpjs;
   if (!sensivel) {
-    const r = await sugerirParaEnvio({ dados, tipoReal: tipo, empresaId: empresaSugerida, empresasDoLogin: ator.empresas.map((e) => e.id), cnpjs, item: item ? { tipoId: item.tipo_id, subtipoId: item.subtipo_id } : null });
+    const comp = item ? (await um<{ c: string }>(`SELECT to_char(competencia, 'YYYY-MM-DD') AS c FROM itens_pedido WHERE id = $1`, [item.id]))?.c : undefined;
+    const r = await sugerirParaEnvio({ dados, tipoReal: tipo, empresaId: empresaSugerida ?? (ator.empresas.length === 1 ? ator.empresas[0].id : null), empresasDoLogin: ator.empresas.map((e) => e.id), cnpjs, item: item ? { tipoId: item.tipo_id, subtipoId: item.subtipo_id, competencia: comp } : null });
     sugestao = r.sugestao;
+    cnpjsLidos = r.cnpjs;
     if (r.aviso) avisos.push(r.aviso);
   }
-  await q(`UPDATE uploads SET sensivel = $2, analise = $3 WHERE id = $1`, [uploadId, sensivel, JSON.stringify({ tipoReal: tipo.mime, cnpjs, empresaSugerida, sugestao, avisos })]);
-  return { tipoReal: tipo.mime, cnpjs, empresaSugerida, sugestao, avisos };
+  // Empresa pelo CNPJ também vale para o que a IA leu numa foto.
+  const sugeridaFinal = empresaSugerida ?? (() => { const m = ator.empresas.filter((e) => cnpjsLidos.includes(e.cnpj)); return m.length === 1 ? m[0].id : null; })();
+  await q(`UPDATE uploads SET sensivel = $2, analise = $3 WHERE id = $1`, [uploadId, sensivel, JSON.stringify({ tipoReal: tipo.mime, cnpjs: cnpjsLidos, empresaSugerida: sugeridaFinal, sugestao, avisos })]);
+  return { tipoReal: tipo.mime, cnpjs: cnpjsLidos, empresaSugerida: sugeridaFinal, sugestao, avisos };
 }
 
 export interface Confirmacao { uploadId: string; empresaId: string; tipoId: string; subtipoId: string | null; competencia?: string | null; sensivel?: boolean }

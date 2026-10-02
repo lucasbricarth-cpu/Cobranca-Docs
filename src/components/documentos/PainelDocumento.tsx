@@ -110,6 +110,19 @@ export function PainelDocumento({ docId, hrefFechar, tipos, empresas, podeAgir =
             {podeAgir && doc.status === 'a_conferir' && <button className="btn btn-sm btn-primary" onClick={conferir}><CheckCheck size={14} />Conferir</button>}
             {podeAgir && ['a_conferir', 'conferido', 'nao_reconhecido'].includes(doc.status) && doc.empresa_id && <button className="btn btn-sm" onClick={() => setRejeitar(true)}><RotateCcw size={14} />Rejeitar e pedir de novo</button>}
           </div>
+          {(() => {
+            const sg = (doc.sugestao?.sugerido ?? doc.sugestao?.previa) as { rotulo?: string; origem?: string; trecho?: string; novaConta?: string | null } | undefined;
+            if (!sg?.rotulo) return null;
+            const origem = sg.origem === 'ia' ? 'IA' : sg.origem === 'xml' ? 'XML da nota' : sg.origem === 'ofx' ? 'arquivo OFX' : 'análise';
+            return (
+              <section className="card p-3 flex flex-col gap-1">
+                <div className="eyebrow">Sugestão ({origem})</div>
+                <div className="text-[13.5px]">{sg.rotulo}</div>
+                {sg.novaConta && <span className="pill pill-warn pill-dot self-start">Nova conta encontrada: {sg.novaConta}</span>}
+                {sg.trecho && <div className="text-[12px] text-fg-3 italic line-clamp-3">“{sg.trecho}”</div>}
+              </section>
+            );
+          })()}
           <dl className="painel-doc-dl">
             <dt>Nome original</dt><dd className="break-all">{doc.nome_original}</dd>
             {doc.tipo_nome && <><dt>Tipo</dt><dd>{doc.tipo_nome}{doc.subtipo_rotulo ? ` › ${doc.subtipo_rotulo}` : ''}</dd></>}

@@ -18,6 +18,7 @@ export async function POST(req: Request) {
       `INSERT INTO tipos_documento (nome, subtipo_origem, regra_mes, sensivel, guarda_meses, icone, ativo, ordem)
        VALUES ($1, $2, $3, $4, $5, $6, $7, (SELECT coalesce(max(ordem), 0) + 10 FROM tipos_documento)) RETURNING id`,
       [d.nome, d.subtipo_origem, d.regra_mes, d.sensivel, d.guarda_meses, d.icone, d.ativo]);
+    // O arquivamento automático começa desligado; liga-se em Ajustes › Classificação.
     return ok({ id: r!.id });
   });
 }

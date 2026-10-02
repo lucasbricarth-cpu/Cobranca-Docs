@@ -25,7 +25,7 @@ export async function semear(pool: Pool) {
         [e.codi, e.nome, e.cnpj, e.resp, e.perfil, e.folha])).rows[0].id;
     }
     const contas = [
-      [101, 1, 341, 'ITAU UNIBANCO S.A.', '0912', '45567', '0567'],
+      [101, 1, 341, 'ITAU UNIBANCO S.A.', '0912', '1056-7', '0567'],
       [101, 2, 748, 'BANCO COOPERATIVO SICREDI S.A.', '0710', '120921', '0921'],
       [102, 3, 1, 'BANCO DO BRASIL S.A.', '1234', '981200', '1200'],
       [103, 4, 341, 'ITAU UNIBANCO S.A.', '0033', '77310', '7310'],
