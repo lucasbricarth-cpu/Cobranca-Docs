@@ -13,6 +13,8 @@ import { ClassificarModal, type OpcoesClassificar } from './ClassificarModal';
 import { dataCurta, horaSP, mesCurto } from '@/lib/tempo';
 import type { ArquivoDaLista } from '@/lib/documentos/consultas';
 
+interface Acesso { acao: string; quem: string; lado: 'escritorio' | 'cliente'; em: string }
+const VERBOS: Record<string, string> = { abrir: 'abriu', baixar: 'baixou', exportar: 'exportou', miniatura: 'viu a miniatura' };
 interface Auditoria { acao: string; de: Record<string, unknown> | null; para: Record<string, unknown> | null; quem: string; em: string }
 
 const ACOES: Record<string, string> = {
@@ -34,6 +36,7 @@ export function PainelDocumento({ docId, hrefFechar, tipos, empresas, podeAgir =
   const [toast, avisar] = useToast();
   const [doc, setDoc] = useState<ArquivoDaLista | null>(null);
   const [aud, setAud] = useState<Auditoria[]>([]);
+  const [acessos, setAcessos] = useState<Acesso[]>([]);
   const [url, setUrl] = useState<string | null>(null);
   const [erro, setErro] = useState<string | null>(null);
   const [classificar, setClassificar] = useState<OpcoesClassificar | null>(null);
@@ -41,14 +44,14 @@ export function PainelDocumento({ docId, hrefFechar, tipos, empresas, podeAgir =
   const [motivo, setMotivo] = useState('');
 
   useEffect(() => {
-    setDoc(null); setUrl(null); setErro(null); setAud([]);
+    setDoc(null); setUrl(null); setErro(null); setAud([]); setAcessos([]);
     if (!docId) return;
     let cancelado = false;
     (async () => {
-      const r = await chamar<{ documento: ArquivoDaLista; auditoria: Auditoria[] }>(`/api/documentos/${docId}`);
+      const r = await chamar<{ documento: ArquivoDaLista; auditoria: Auditoria[]; acessos: Acesso[] }>(`/api/documentos/${docId}`);
       if (cancelado) return;
       if (!r.ok) return setErro(r.erro ?? 'Não foi possível abrir.');
-      setDoc(r.documento); setAud(r.auditoria ?? []);
+      setDoc(r.documento); setAud(r.auditoria ?? []); setAcessos(r.acessos ?? []);
       if (['pdf', 'jpg', 'png', 'webp'].includes(r.documento.extensao)) {
         const u = await chamar<{ url: string }>(`/api/documentos/${docId}/url?modo=abrir`);
         if (!cancelado && u.ok) setUrl(u.url);
@@ -143,6 +146,18 @@ export function PainelDocumento({ docId, hrefFechar, tipos, empresas, podeAgir =
                 ))}
               </ol>
             </section>
+          )}
+          {acessos.length > 0 && (
+            <details className="painel-doc-acessos">
+              <summary className="eyebrow cursor-pointer select-none">Registro de acesso · {acessos.length}{acessos.length >= 50 ? '+' : ''}</summary>
+              <ol className="flex flex-col gap-1 mt-1.5">
+                {acessos.map((a, i) => (
+                  <li key={i} className="text-[12px] text-fg-2">
+                    <b className="text-fg">{a.quem}</b>{a.lado === 'cliente' ? ' (cliente)' : ''} · {VERBOS[a.acao] ?? a.acao} · <span className="mono text-fg-4">{dataCurta(a.em)} {horaSP(new Date(a.em))}</span>
+                  </li>
+                ))}
+              </ol>
+            </details>
           )}
         </div>
       )}

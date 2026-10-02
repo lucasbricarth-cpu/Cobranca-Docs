@@ -2027,3 +2027,10 @@ input[type="checkbox"].sw { accent-color: var(--destaque); width: 18px; height: 
 .btn-escanear { width: 100%; min-height: 56px; border-radius: 16px; font-size: 16px; gap: 10px; }
 .linha-refazer { border-color: rgba(230, 180, 80, 0.45); background: linear-gradient(rgba(230, 180, 80, 0.07), rgba(230, 180, 80, 0.07)), var(--glass-2); }
 .linha.flex-col { align-items: stretch; }
+
+/* Caixa de seleção (listas com aprovação em lote: Guarda). */
+input[type="checkbox"].selecao { width: 18px; height: 18px; flex: none; accent-color: var(--gold); cursor: pointer; }
+.painel-doc-acessos summary { list-style: none; }
+.painel-doc-acessos summary::-webkit-details-marker { display: none; }
+.painel-doc-acessos summary::before { content: '▸ '; }
+.painel-doc-acessos[open] summary::before { content: '▾ '; }

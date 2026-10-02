@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { ok, tratar } from '@/lib/api';
 import { sessaoAtual, exigirFuncionario, NaoAutorizado } from '@/lib/auth/sessao';
 import { carregarComPermissao } from '@/lib/documentos/permissao';
-import { documentoPorId, auditoriaDoDocumento } from '@/lib/documentos/consultas';
+import { documentoPorId, auditoriaDoDocumento, acessosDoDocumento } from '@/lib/documentos/consultas';
 import { classificarDocumento } from '@/lib/documentos/acoes';
 
 export async function GET(_: Request, { params }: { params: { id: string } }) {
@@ -13,7 +13,9 @@ export async function GET(_: Request, { params }: { params: { id: string } }) {
     await carregarComPermissao(s, params.id);
     const documento = await documentoPorId(params.id);
     const auditoria = s.tipo === 'funcionario' ? await auditoriaDoDocumento(params.id) : [];
-    return ok({ documento, auditoria });
+    // Registro de acesso: só o escritório vê.
+    const acessos = s.tipo === 'funcionario' ? await acessosDoDocumento(params.id) : [];
+    return ok({ documento, auditoria, acessos });
   });
 }
 

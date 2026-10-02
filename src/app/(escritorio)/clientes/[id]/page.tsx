@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
-import { Users, Tags, Lock, X } from 'lucide-react';
+import { Users, Tags, Lock, X, Archive } from 'lucide-react';
 import { exigirFuncionario } from '@/lib/auth/sessao';
 import { podeVerSensivel } from '@/lib/acesso';
 import { dadosDaEmpresa, listarEmpresas, funcionariosAtivos } from '@/lib/consultas/empresas';
@@ -145,6 +145,7 @@ export default async function Empresa({ params, searchParams: bruto }: { params:
             <div className="flex gap-1.5">
               <Link href={`${base}/subtipos`} className="btn btn-sm" title="Contas, cartões e subtipos"><Tags size={14} />Subtipos</Link>
               <Link href={`${base}/acessos`} className="btn btn-sm" title="Logins do cliente"><Users size={14} />Acessos</Link>
+              {s.papel === 'admin' && <Link href={`${base}/saida`} className="btn btn-sm" title="Exportar tudo e saída do cliente"><Archive size={14} />Saída</Link>}
             </div>
           </div>
           <div className="flex items-center gap-2 mt-3 flex-wrap">

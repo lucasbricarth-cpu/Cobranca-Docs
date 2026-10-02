@@ -139,3 +139,14 @@ export async function resumoDiario(agora: Date = new Date()) {
   }
   return { enviados, dia: dataCurta(hoje, true), mes: mesPorExtenso(`${hoje.slice(0, 8)}01`) };
 }
+
+/** Aviso aos Admins (Etapa 9): guarda vencida e pasta geral a vencer. Só contagens; nada do conteúdo. */
+export async function avisarAdminsGuarda(c: { aVencer: number; vencidos: number; dias: number; hoje: string }) {
+  const admins = await todos<{ id: string; nome: string; email: string }>(`SELECT id, nome, email FROM usuarios WHERE papel = 'admin' AND ativo`);
+  for (const u of admins) {
+    await enviarPush({ usuarioId: u.id }, { title: 'Guarda e exclusões', body: await texto('push.guarda'), url: '/ajustes/guarda', tag: 'guarda' });
+    const vars = { nome: u.nome.split(' ')[0], vencidos: c.vencidos, aVencer: c.aVencer, dias: c.dias, link: `${process.env.APP_URL ?? ''}/ajustes/guarda` };
+    await enviarEmail({ para: u.email, assunto: await texto('email.guarda.assunto', vars), corpo: await texto('email.guarda.corpo', vars) });
+  }
+  return admins.length;
+}

@@ -174,3 +174,35 @@ export async function auditoriaDoDocumento(id: string) {
   return todos<{ acao: string; de: Record<string, unknown> | null; para: Record<string, unknown> | null; quem: string; em: Date }>(
     `SELECT acao, de, para, quem, em FROM auditoria_documentos WHERE documento_id = $1 ORDER BY em DESC, id DESC`, [id]);
 }
+
+/** Registro de acesso (Etapa 9): quem abriu, baixou ou exportou o arquivo, e quando. */
+export interface AcessoDoc { acao: 'abrir' | 'baixar' | 'miniatura' | 'exportar'; quem: string; lado: 'escritorio' | 'cliente'; em: Date }
+export async function acessosDoDocumento(id: string, limite = 50): Promise<AcessoDoc[]> {
+  return todos<AcessoDoc>(
+    `SELECT a.acao, coalesce(u.nome, l.nome, '—') AS quem, CASE WHEN a.login_id IS NOT NULL THEN 'cliente' ELSE 'escritorio' END AS lado, a.em
+     FROM acessos_documento a LEFT JOIN usuarios u ON u.id = a.usuario_id LEFT JOIN logins_cliente l ON l.id = a.login_id
+     WHERE a.documento_id = $1 ORDER BY a.em DESC, a.id DESC LIMIT $2`, [id, limite]);
+}
+
+/** Registro de acesso geral (Admin), com filtro por empresa, pessoa e período. */
+export async function registroDeAcesso(f: { empresaId?: string | null; quem?: string | null; desde?: string | null; limite?: number }) {
+  const p: unknown[] = []; const w: string[] = ['true'];
+  const add = (v: unknown) => { p.push(v); return `$${p.length}`; };
+  if (f.empresaId) w.push(`d.empresa_id = ${add(f.empresaId)}`);
+  if (f.quem) w.push(`unaccent(lower(coalesce(u.nome, l.nome, ''))) LIKE unaccent(lower(${add(`%${f.quem}%`)}))`);
+  if (f.desde) w.push(`a.em >= (${add(f.desde)}::date)::timestamp AT TIME ZONE 'America/Sao_Paulo'`);
+  const linhas = await todos<Record<string, unknown>>(
+    `SELECT a.id, a.acao, a.em, a.documento_id, coalesce(u.nome, l.nome, '—') AS quem, CASE WHEN a.login_id IS NOT NULL THEN 'cliente' ELSE 'escritorio' END AS lado,
+            d.empresa_id, e.nome AS empresa_nome, d.nome_original, d.extensao, t.nome AS tipo_nome, to_char(d.competencia, 'YYYY-MM-DD') AS competencia,
+            d.excluido_em IS NOT NULL AS excluido, ${COLS_SUB}
+     FROM acessos_documento a JOIN documentos d ON d.id = a.documento_id
+     LEFT JOIN tipos_documento t ON t.id = d.tipo_id LEFT JOIN empresas e ON e.id = d.empresa_id
+     LEFT JOIN subtipos s ON s.id = d.subtipo_id LEFT JOIN contas_bancarias cb ON cb.id = s.conta_bancaria_id
+     LEFT JOIN usuarios u ON u.id = a.usuario_id LEFT JOIN logins_cliente l ON l.id = a.login_id
+     WHERE ${w.join(' AND ')} ORDER BY a.em DESC, a.id DESC LIMIT ${Math.min(f.limite ?? 200, 1000)}`, p);
+  return linhas.map((r) => ({
+    id: String(r.id), acao: r.acao as AcessoDoc['acao'], em: r.em as Date, quem: r.quem as string, lado: r.lado as AcessoDoc['lado'],
+    documento_id: r.documento_id as string, empresa_id: r.empresa_id as string | null, empresa_nome: r.empresa_nome as string | null, excluido: r.excluido as boolean,
+    documento: r.excluido ? 'Documento excluído' : nomeGerado({ tipo_nome: r.tipo_nome as string | null, subtipo: subDe(r), competencia: r.competencia as string | null, nome_original: r.nome_original as string }),
+  }));
+}

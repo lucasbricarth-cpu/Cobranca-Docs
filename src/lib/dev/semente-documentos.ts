@@ -55,6 +55,10 @@ export async function semearDocumentos() {
     atestado: await env('atestado_joao.jpg', await fotoDemo('Atestado médico', '#f2f2f2'), { tipoId: tipo['Atestados e exames de funcionário'], competencia: mes, sensivel: true }),
     // Chega pelo WhatsApp sem tipo: a classificação (IA) sugere "Extrato bancário › Itaú final 0567".
     viaWhats: await env('extrato_whatsapp_out.pdf', await pdfDemo('Itaú · Extrato', ['Agência 0912  Conta 1056-7', 'PADARIA DO BAIRRO LTDA  CNPJ 11.222.333/0001-81', 'Período: 10/2026']), { tipoId: null, competencia: `${somarMeses(mes, 1)}`, origem: 'whatsapp', whatsappNumero: '5511988887777' }),
+    // Guarda (Etapa 9): um extrato antigo com a guarda vencida e dois arquivos da pasta geral (um vencido, um a vencer).
+    antigo: await env('extrato_itau_jan2021.pdf', await pdfDemo('Itaú · Extrato', ['Agência 0912  Conta 1056-7', 'Período: 01/2021']), { tipoId: tipo['Extrato bancário'], subtipoId: itau, competencia: '2021-01-01' }),
+    geralVencido: await env('IMG-20260620-WA0003.jpg', await fotoDemo('Recibo', '#ece6d8'), { empresaId: null, loginId: null, origem: 'whatsapp', whatsappNumero: '5531966665555' }),
+    geralQuase: await env('IMG-20260708-WA0011.jpg', await fotoDemo('Comprovante', '#e6e0d2'), { empresaId: null, loginId: null, origem: 'whatsapp', whatsappNumero: '5531966665555' }),
     semEmpresa: await env('IMG-20261001-WA0007.jpg', await fotoDemo('Boleto', '#efe9dc'), { empresaId: null, loginId: null, origem: 'whatsapp', whatsappNumero: '5521977776666' }),
   };
   for (let i = 0; i < 4 && (await rodarFila(50)) > 0; i++) { /* processa tudo */ }
@@ -62,6 +66,10 @@ export async function semearDocumentos() {
   // Ajustes de demonstração: datas, conferências, uma rejeição e um lembrete.
   const ajustar = (id: string, data: string) => q(`UPDATE documentos SET recebido_em = $2 WHERE id = $1`, [id, data]);
   await ajustar(docs.itau.id, `${somarMeses(mes, 1).slice(0, 8)}01 09:12-03`);
+  await q(`UPDATE documentos SET recebido_em = now() - interval '96 days' WHERE id = $1`, [docs.geralVencido.id]);
+  await q(`UPDATE documentos SET recebido_em = now() - interval '86 days' WHERE id = $1`, [docs.geralQuase.id]);
+  await ajustar(docs.antigo.id, '2021-02-03 10:20-03');
+  await q(`UPDATE documentos SET status = 'conferido', conferido_em = recebido_em WHERE id = $1 AND status = 'a_conferir'`, [docs.antigo.id]);
   await ajustar(docs.itauV1.id, `${mes.slice(0, 8)}03 18:40-03`);
   await ajustar(docs.itauAnt.id, `${mes.slice(0, 8)}04 08:05-03`);
   await ajustar(docs.sicAnt.id, `${mes.slice(0, 8)}04 08:07-03`);
@@ -73,6 +81,17 @@ export async function semearDocumentos() {
   await q(`UPDATE itens_pedido SET status = 'refazer', motivo_refazer = 'A foto ficou ilegível. Envie de novo, por favor.' WHERE id = $1`, [iNfs]);
   await q(`INSERT INTO avisos (item_id, login_id, canal, etapa, destino, texto, enviado_em) VALUES ($1, $2, 'email', 'lembrete_3dias', 'carlos@padaria.com.br', 'Um pedido do escritório vence em 3 dias.', $3)
            ON CONFLICT ON CONSTRAINT aviso_unico DO NOTHING`, [iSic, login, `${somarMeses(mes, 1).slice(0, 8)}02 08:00-03`]);
+  // Registro de acesso de demonstração.
+  const bruno = await um<{ id: string }>(`SELECT id FROM usuarios WHERE papel <> 'admin' ORDER BY criado_em LIMIT 1`);
+  const anaId = (await um<{ id: string }>(`SELECT id FROM usuarios WHERE papel = 'admin' ORDER BY criado_em LIMIT 1`))!.id;
+  if (!(await um(`SELECT 1 FROM acessos_documento LIMIT 1`))) {
+    for (const [doc, acao, usuario, cliente, quando] of [
+      [docs.itau.id, 'abrir', anaId, null, '1 hour'], [docs.itau.id, 'baixar', null, login, '3 hours'], [docs.itauAnt.id, 'abrir', bruno?.id ?? anaId, null, '1 day'],
+      [docs.nfe.id, 'baixar', bruno?.id ?? anaId, null, '1 day 2 hours'], [docs.sicAnt.id, 'abrir', null, login, '2 days'],
+    ] as const) {
+      await q(`INSERT INTO acessos_documento (documento_id, acao, usuario_id, login_id, em) VALUES ($1, $2, $3, $4, now() - $5::interval)`, [doc, acao, usuario, cliente, quando]);
+    }
+  }
   void iFolha; void iCartao;
   // Um pedido avulso para a carteira toda (os itens que já existiam não duplicam).
   const admin = (await um<{ id: string }>(`SELECT id FROM usuarios WHERE papel = 'admin' ORDER BY criado_em LIMIT 1`))!.id;
