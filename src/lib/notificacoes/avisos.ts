@@ -3,6 +3,7 @@ import { enviarEmail } from './email';
 import { enviarPush } from './push';
 import { texto } from './textos';
 import { criarLinkMagico } from '@/lib/auth/magico';
+import { avisarPorWhatsApp } from '@/lib/whatsapp/avisos';
 import { dataSP as dataSPde, somarDias, dataCurta, mesPorExtenso } from '@/lib/tempo';
 
 /**
@@ -38,7 +39,7 @@ async function reservar(itemIds: string[], loginId: string, canal: 'push' | 'ema
  * Avisa os logins ativos das empresas dos itens. Itens do mesmo login e da
  * mesma etapa saem numa mensagem só (mas cada item fica registrado).
  */
-export async function avisarClientes(itemIds: string[], etapa: EtapaCliente): Promise<{ emails: number; pushes: number }> {
+export async function avisarClientes(itemIds: string[], etapa: EtapaCliente): Promise<{ emails: number; pushes: number; whatsapp?: number }> {
   if (!itemIds.length) return { emails: 0, pushes: 0 };
   const destinos = await todos<{ login_id: string; nome: string; email: string; item_id: string; empresa: string; competencia: string }>(
     `SELECT l.id AS login_id, l.nome, l.email, i.id AS item_id, e.nome AS empresa, to_char(i.competencia, 'YYYY-MM-DD') AS competencia
@@ -48,7 +49,7 @@ export async function avisarClientes(itemIds: string[], etapa: EtapaCliente): Pr
   const porLogin = new Map<string, typeof destinos>();
   for (const d of destinos) porLogin.set(d.login_id, [...(porLogin.get(d.login_id) ?? []), d]);
   const base = etapa.startsWith('refazer') ? 'refazer' : etapa;
-  let emails = 0, pushes = 0;
+  let emails = 0, pushes = 0, whatsapp = 0;
   for (const [loginId, itens] of porLogin) {
     const ids = [...new Set(itens.map((i) => i.item_id))];
     const nome = itens[0].nome.split(' ')[0];
@@ -79,8 +80,10 @@ export async function avisarClientes(itemIds: string[], etapa: EtapaCliente): Pr
         await q(`UPDATE avisos SET status = 'falhou', erro = $4 WHERE login_id = $1 AND canal = 'email' AND etapa = $2 AND item_id = ANY($3)`, [loginId, etapa, novosEmail, (e as Error).message.slice(0, 300)]);
       }
     }
+    // WhatsApp: só o pedido e o lembrete do dia, e só com número confirmado e aceite.
+    if ((await avisarPorWhatsApp(loginId, ids, etapa)) === 'enviado') whatsapp++;
   }
-  return { emails, pushes };
+  return { emails, pushes, ...(whatsapp ? { whatsapp } : {}) };
 }
 
 /** Lembretes do dia (job diário): 3 dias antes, no dia e depois do atraso. Param quando o item é recebido. */

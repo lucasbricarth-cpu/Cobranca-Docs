@@ -28,6 +28,8 @@ export interface Sugestao {
   trecho?: string;
   novaConta?: string | null;   // "Nova conta encontrada": final lido que não está na lista
   competenciaLida?: string | null;
+  /** O que foi lido (para decidir o subtipo depois, quando a empresa só fica conhecida mais tarde — ex.: WhatsApp). */
+  lido?: { banco: string | null; codigoBanco?: string | null; final_conta: string | null; final_cartao: string | null };
 }
 
 interface EntradaSugestao {
@@ -105,7 +107,8 @@ export async function sugerirParaEnvio(a: EntradaSugestao): Promise<{ sugestao: 
       const aviso = a.item?.competencia && competenciaLida && competenciaLida !== a.item.competencia
         ? `O extrato é de ${mesPorExtenso(competenciaLida)}, mas o pedido é de ${mesPorExtenso(a.item.competencia)}. Confira se é o arquivo certo.` : undefined;
       return {
-        sugestao: tipoId ? { tipoId, subtipoId, rotulo: `Extrato bancário${subs ? ` › ${subs.rotulo}` : novaConta ? ` › Nova conta encontrada (${novaConta})` : ''}`, origem: 'ofx', novaConta, competenciaLida } : null,
+        sugestao: tipoId ? { tipoId, subtipoId, rotulo: `Extrato bancário${subs ? ` › ${subs.rotulo}` : novaConta ? ` › Nova conta encontrada (${novaConta})` : ''}`, origem: 'ofx', novaConta, competenciaLida,
+          lido: { banco: null, codigoBanco: o.banco, final_conta: o.conta, final_cartao: null } } : null,
         aviso, cnpjs: a.cnpjs,
       };
     }
@@ -126,7 +129,8 @@ export async function sugerirParaEnvio(a: EntradaSugestao): Promise<{ sugestao: 
   if (subtipos.some((s) => s.tipo_id === tipoId)) ({ subtipoId, novaConta } = decidirSubtipo(r, subtipos, tipoId));
   const sub = subtipoId ? subtipos.find((s) => s.id === subtipoId) : null;
   return {
-    sugestao: { tipoId, subtipoId, rotulo: `${r.tipo}${sub ? ` › ${sub.rotulo}` : novaConta ? ` › Nova conta encontrada (${novaConta})` : ''}`, origem: 'ia', trecho: r.trecho, novaConta },
+    sugestao: { tipoId, subtipoId, rotulo: `${r.tipo}${sub ? ` › ${sub.rotulo}` : novaConta ? ` › Nova conta encontrada (${novaConta})` : ''}`, origem: 'ia', trecho: r.trecho, novaConta,
+      lido: { banco: r.banco, final_conta: r.final_conta, final_cartao: r.final_cartao } },
     cnpjs,
   };
 }

@@ -50,7 +50,7 @@ export default async function Pedido({ params }: { params: { id: string } }) {
                 <div className="linha-sub">{sub || p.tipo_nome}{i.prazo ? ` · prazo ${dataCurta(i.prazo as string)}` : ''}</div>
               </span>
               {i.status === 'cancelado' ? <span className="pill">Cancelado</span> : <Pilula status={statusDaTela(i.status as string, i.prazo as string | null, hoje)} />}
-              <AcoesItem itemId={i.id as string} podeCancelar={!['conferido', 'cancelado'].includes(i.status as string)} />
+              <AcoesItem itemId={i.id as string} empresaId={i.empresa_id as string} podeCancelar={!['conferido', 'cancelado'].includes(i.status as string)} aberto={['pendente', 'refazer'].includes(i.status as string)} />
             </div>
           );
         })}

@@ -209,5 +209,21 @@ if (quer('envio')) {
     await p.close();
   }
 }
+if (quer('whatsapp')) {
+  // Etapa 8: Acessos com o número e o aceite, e o "Abrir no WhatsApp" de um item de pedido.
+  for (const [ctx, sufixo] of [[pc, 'pc'], [cel, 'cel']] as const) {
+    const a = await entrar(ctx, ADMIN, await resolver('/clientes/{101}/acessos'));
+    await paleta(a, 'dourado', true);
+    await foto(a, `funcionario-acessos-whatsapp-${sufixo}`);
+    await a.close();
+    const p = await entrar(ctx, ADMIN, await resolver('/pedidos/{pedido}'));
+    await paleta(p, 'dourado', true);
+    await p.getByRole('button', { name: 'Abrir no WhatsApp' }).first().click();
+    await p.waitForSelector('.modal', { timeout: 15000 });
+    await p.waitForTimeout(600);
+    await foto(p, `funcionario-pedido-abrir-whatsapp-${sufixo}`);
+    await p.close();
+  }
+}
 await browser.close();
 await banco.end();

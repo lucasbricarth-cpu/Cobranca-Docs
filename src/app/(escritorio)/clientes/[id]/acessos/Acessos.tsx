@@ -6,6 +6,7 @@ import { UserPlus, Fingerprint, Building2 } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
 import { useToast } from '@/components/ui/Toast';
 import { chamar } from '@/components/ui/cliente-http';
+import { WhatsAppDoLogin } from './WhatsAppDoLogin';
 
 interface Login { id: string; nome: string; email: string; ativo: boolean; passkeys: number; outras: number }
 
@@ -46,17 +47,20 @@ export function Acessos({ empresaId, logins, sugestoes, outrasEmpresas }: {
       <div className="lista">
         {logins.length === 0 && <div className="vazio">Ninguém desta empresa tem acesso ainda.</div>}
         {logins.map((l) => (
-          <div key={l.id} className="linha">
-            <span className="flex-1 min-w-0">
-              <div className="linha-titulo">{l.nome}</div>
-              <div className="linha-sub truncate">{l.email}</div>
-              <div className="flex gap-1.5 mt-1.5 flex-wrap">
-                {l.passkeys > 0 && <span className="pill"><Fingerprint />Passkey</span>}
-                {l.outras > 0 && <span className="pill"><Building2 />+{l.outras} empresa{l.outras > 1 ? 's' : ''}</span>}
-                {!l.ativo && <span className="pill st-atrasado">Desativado</span>}
-              </div>
-            </span>
-            <button className="btn btn-sm" onClick={() => alternar(l)}>{l.ativo ? 'Desativar' : 'Reativar'}</button>
+          <div key={l.id} className="linha flex-col">
+            <div className="flex items-start gap-3 w-full">
+              <span className="flex-1 min-w-0">
+                <div className="linha-titulo">{l.nome}</div>
+                <div className="linha-sub truncate">{l.email}</div>
+                <div className="flex gap-1.5 mt-1.5 flex-wrap">
+                  {l.passkeys > 0 && <span className="pill"><Fingerprint />Passkey</span>}
+                  {l.outras > 0 && <span className="pill"><Building2 />+{l.outras} empresa{l.outras > 1 ? 's' : ''}</span>}
+                  {!l.ativo && <span className="pill st-atrasado">Desativado</span>}
+                </div>
+              </span>
+              <button className="btn btn-sm" onClick={() => alternar(l)}>{l.ativo ? 'Desativar' : 'Reativar'}</button>
+            </div>
+            {l.ativo && <WhatsAppDoLogin loginId={l.id} />}
           </div>
         ))}
       </div>

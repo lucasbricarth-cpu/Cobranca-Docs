@@ -4,6 +4,7 @@ import { rodarFila } from '@/lib/fila';
 import { pdfDemo, fotoDemo, xmlNfeDemo } from './demo-arquivos';
 import { competenciaPadrao, somarMeses } from '@/lib/tempo';
 import { criarPedido } from '@/lib/pedidos';
+import { confirmarNumero, registrarAceite } from '@/lib/whatsapp/numeros';
 
 /**
  * Documentos e itens de demonstração (só desenvolvimento e capturas):
@@ -75,6 +76,9 @@ export async function semearDocumentos() {
   void iFolha; void iCartao;
   // Um pedido avulso para a carteira toda (os itens que já existiam não duplicam).
   const admin = (await um<{ id: string }>(`SELECT id FROM usuarios WHERE papel = 'admin' ORDER BY criado_em LIMIT 1`))!.id;
+  // WhatsApp do Carlos: número confirmado pelo escritório e aceite registrado (demonstração).
+  await confirmarNumero(login, '11988887777', admin);
+  await registrarAceite(login, 'presencial', null, admin);
   const ja = await um(`SELECT 1 FROM pedidos WHERE origem = 'avulso' AND competencia = $1 AND tipo_id = $2`, [mes, tipo['Extrato bancário']]);
   if (!ja) await criarPedido({ empresaIds: Object.values(emp), tipoId: tipo['Extrato bancário'], subtipos: 'todos', competencia: mes, prazo, mensagem: 'Extratos de todas as contas, por favor.', origem: 'avulso', criadoPor: admin });
   const ja2 = await um(`SELECT 1 FROM pedidos WHERE origem = 'avulso' AND competencia = $1 AND tipo_id = $2`, [mes, tipo['Notas fiscais de entrada']]);

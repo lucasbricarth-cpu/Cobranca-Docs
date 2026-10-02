@@ -34,7 +34,7 @@ describe('avisos ao cliente', () => {
     expect(r1).toEqual({ emails: 1, pushes: 1 });
     const r2 = await avisarClientes([i], 'criado');
     expect(r2).toEqual({ emails: 0, pushes: 0 });
-    const registro = await todos<{ canal: string; etapa: string; status: string }>(`SELECT canal, etapa, status FROM avisos WHERE item_id = $1 ORDER BY canal`, [i]);
+    const registro = await todos<{ canal: string; etapa: string; status: string }>(`SELECT canal, etapa, status FROM avisos WHERE item_id = $1 AND canal IN ('email','push') ORDER BY canal`, [i]);
     expect(registro).toEqual([{ canal: 'email', etapa: 'criado', status: 'enviado' }, { canal: 'push', etapa: 'criado', status: 'enviado' }]);
     // O banco recusa um segundo aviso igual (prova da cobrança única).
     await expect(q(`INSERT INTO avisos (item_id, login_id, canal, etapa) VALUES ($1, $2, 'email', 'criado')`, [i, ids.login])).rejects.toThrow(/aviso_unico/);
