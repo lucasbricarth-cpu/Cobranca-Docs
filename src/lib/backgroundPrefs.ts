@@ -58,7 +58,7 @@ export const PREFS_PADRAO: BackgroundPrefs = {
  * O portal do cliente (/cliente), a entrada (/entrar), os links dos e-mails
  * (/e) e a tela de instalação. A mesma lista vale para o script anti-piscada.
  */
-export const ROTAS_PUBLICAS = ['/entrar', '/cliente', '/e', '/instalar', '/privacidade', '/demo'] as const;
+export const ROTAS_PUBLICAS = ['/entrar', '/cliente', '/e', '/enviar', '/instalar', '/privacidade', '/demo'] as const;
 export function ehRotaPublica(pathname: string): boolean {
   return pathname === '/' || ROTAS_PUBLICAS.some((r) => pathname === r || pathname.startsWith(`${r}/`));
 }

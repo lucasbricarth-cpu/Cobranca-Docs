@@ -55,7 +55,11 @@ async function paleta(p: import('playwright').Page, id: string, escuro = true) {
 const sem = await fetch(`${BASE}/api/dev/semear`, { method: 'POST' });
 console.log('semente:', sem.status, await sem.text());
 
-const browser = await chromium.launch({ executablePath: CHROME, args: ['--no-sandbox'] });
+import { resolve as caminho } from 'node:path';
+const browser = await chromium.launch({ executablePath: CHROME, args: [
+  '--no-sandbox', '--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream',
+  `--use-file-for-fake-video-capture=${caminho(PASTA, 'camera.y4m')}`,
+] });
 const { pc, cel } = await contextos(browser);
 
 // Rotas com {codi} (ex.: /clientes/{101}) viram o id da empresa da semente com aquele codi_emp.
@@ -146,6 +150,55 @@ if (quer('barras')) {
     console.log(`barras (${ponta}):`, JSON.stringify(r));
     if (!r.ok) { console.error('FALHOU: a barra de abas cobre a última linha'); process.exitCode = 1; }
     await foto(p, `iphone-lista-longa-fim-${ponta}`);
+    await p.close();
+  }
+}
+if (quer('envio')) {
+  // Câmera (scanner) no celular: detecta o papel, fotografa e revisa.
+  {
+    const p = await entrar(cel, CLIENTE, '/cliente');
+    await p.context().grantPermissions(['camera']);
+    await p.locator('.btn-escanear').first().click();
+    await p.waitForSelector('.scanner video');
+    await p.waitForFunction(() => !document.querySelector('.scanner-dica'), null, { timeout: 90000 });
+    await p.waitForTimeout(2500); // o contorno ao vivo aparece a cada 400 ms
+    await foto(p, 'cliente-camera-cel');
+    await p.locator('.scanner-disparo').click();
+    await p.waitForSelector('.scanner-mini', { timeout: 30000 });
+    await p.locator('.scanner-disparo').click();
+    await p.waitForFunction(() => document.querySelectorAll('.scanner-mini').length >= 2, null, { timeout: 30000 });
+    await p.getByRole('button', { name: 'Concluir' }).click();
+    await foto(p, 'cliente-camera-revisao-cel');
+    await p.close();
+  }
+  // Popup com várias empresas (envio sem pedido de um login com duas empresas):
+  // com CNPJ que bate (empresa já marcada) e sem CNPJ (nada marcado, Enviar travado).
+  const { PDFDocument, StandardFonts } = await import('pdf-lib');
+  const pdfCom = async (texto: string) => {
+    const d = await PDFDocument.create(); const pg = d.addPage([595, 842]); const f = await d.embedFont(StandardFonts.Helvetica);
+    pg.drawText(texto, { x: 40, y: 780, size: 14, font: f });
+    return Buffer.from(await d.save());
+  };
+  const casos: [string, string][] = [['com-cnpj', 'Comprovante de pagamento  CNPJ 11.222.333/0001-81'], ['sem-cnpj', 'Comprovante de pagamento']];
+  for (const [nome, texto] of casos) {
+    for (const [ctx, sufixo] of [[pc, 'pc'], [cel, 'cel']] as const) {
+      if (nome === 'sem-cnpj' && sufixo === 'pc') continue;
+      const p = await entrar(ctx, CLIENTE, '/cliente/enviar');
+      const [escolha] = await Promise.all([p.waitForEvent('filechooser'), p.getByRole('button', { name: 'Anexar arquivo' }).first().click()]);
+      await escolha.setFiles({ name: `${nome}-${Date.now()}.pdf`, mimeType: 'application/pdf', buffer: await pdfCom(`${texto}  ${Date.now()}`) });
+      await p.getByRole('button', { name: 'Não', exact: true }).click();
+      await p.waitForSelector('text=Confirmar envio', { timeout: 30000 });
+      await p.waitForTimeout(800);
+      await foto(p, `cliente-popup-${nome}-${sufixo}`);
+      await p.close();
+    }
+  }
+  // QR code no computador: "Tirar foto" num item pendente.
+  {
+    const p = await entrar(pc, CLIENTE, '/cliente');
+    await p.getByRole('button', { name: 'Tirar foto' }).first().click();
+    await p.waitForSelector('img[alt^="QR code"]', { timeout: 15000 });
+    await foto(p, 'cliente-qr-pc');
     await p.close();
   }
 }

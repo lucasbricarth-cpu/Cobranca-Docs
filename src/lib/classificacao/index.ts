@@ -31,3 +31,11 @@ export async function classificarEnvio(ctx: ContextoClassificacao, _dados: Buffe
   const status = ctx.empresaId && ctx.tipoId ? 'a_conferir' : 'nao_reconhecido';
   return { tipoId: ctx.tipoId, subtipoId: ctx.subtipoId, empresaId: ctx.empresaId, competencia: ctx.competencia, cnpjs: [], sugestao: null, status };
 }
+
+/** Sugestão para o popup do envio do cliente (a Etapa 6 completa com XML, OFX e IA). */
+export async function sugerirParaEnvio(_a: {
+  dados: Buffer; tipoReal: TipoReal; empresaId: string | null; empresasDoLogin: string[]; cnpjs: string[];
+  item: { tipoId: string; subtipoId: string | null } | null;
+}): Promise<{ sugestao: { tipoId: string; subtipoId: string | null; rotulo: string } | null; aviso?: string }> {
+  return { sugestao: null };
+}

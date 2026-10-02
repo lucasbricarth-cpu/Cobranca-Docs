@@ -1,5 +1,6 @@
 'use client';
-import { useEffect, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 
 /** Modal de vidro (no celular, folha inferior). Fecha com Esc e no fundo. */
@@ -12,8 +13,11 @@ export function Modal({ aberto, aoFechar, titulo, subtitulo, icone, children, ro
     window.addEventListener('keydown', f);
     return () => window.removeEventListener('keydown', f);
   }, [aberto, aoFechar]);
-  if (!aberto) return null;
-  return (
+  // Portal no <body>: nenhum ancestral com animação/transform prende o modal.
+  const [montado, setMontado] = useState(false);
+  useEffect(() => setMontado(true), []);
+  if (!aberto || !montado) return null;
+  return createPortal(
     <div className="overlay" onMouseDown={(e) => { if (e.target === e.currentTarget) aoFechar(); }}>
       <div className="modal gd-rise" role="dialog" aria-modal="true" aria-label={titulo}>
         <div className="modal-cab">
@@ -27,6 +31,7 @@ export function Modal({ aberto, aoFechar, titulo, subtitulo, icone, children, ro
         {children}
         {rodape ? <div className="modal-pe">{rodape}</div> : null}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

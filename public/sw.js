@@ -49,10 +49,53 @@ self.addEventListener('notificationclick', (e) => {
     return self.clients.openWindow(url);
   }));
 });
+/* Sincronização em segundo plano (Android/Chrome): sobe os envios guardados
+   no aparelho que já têm pedido (o resto pede a confirmação do cliente no app). */
 self.addEventListener('sync', (e) => {
-  if (e.tag === 'envios-pendentes') {
-    e.waitUntil(self.clients.matchAll({ type: 'window' }).then((lista) => {
-      lista.forEach((c) => c.postMessage({ tipo: 'sincronizar-envios' }));
-    }));
-  }
+  if (e.tag === 'envios-pendentes') e.waitUntil(sincronizarEnvios());
 });
+
+function abrirIdb() {
+  return new Promise((ok, falha) => {
+    const r = indexedDB.open('pd-envios', 1);
+    r.onupgradeneeded = () => r.result.createObjectStore('pendentes', { keyPath: 'id' });
+    r.onsuccess = () => ok(r.result);
+    r.onerror = () => falha(r.error);
+  });
+}
+function idb(db, modo, fn) {
+  return new Promise((ok, falha) => {
+    const req = fn(db.transaction('pendentes', modo).objectStore('pendentes'));
+    req.onsuccess = () => ok(req.result);
+    req.onerror = () => falha(req.error);
+  });
+}
+async function chamar(url, corpo, token) {
+  const h = { 'content-type': 'application/json' };
+  if (token) h['x-envio-token'] = token;
+  const r = await fetch(url, { method: 'POST', headers: h, body: JSON.stringify(corpo), credentials: 'same-origin' });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.erro || 'erro');
+  return j;
+}
+async function sincronizarEnvios() {
+  const db = await abrirIdb();
+  const lista = await idb(db, 'readonly', (s) => s.getAll());
+  let enviados = 0;
+  for (const p of lista) {
+    if (!p.itemId || !p.empresaId || !p.tipoId) continue;
+    try {
+      const ini = await chamar('/api/envios/iniciar', { nomeOriginal: p.nome, mime: p.mime, itemId: p.itemId }, p.token);
+      const put = await fetch(ini.url, { method: 'PUT', headers: ini.cabecalhos, body: p.arquivo });
+      if (!put.ok) throw new Error('upload');
+      await chamar('/api/envios/' + ini.uploadId + '/analisar', { sensivel: p.sensivel }, p.token);
+      await chamar('/api/envios/' + ini.uploadId + '/confirmar', { empresaId: p.empresaId, tipoId: p.tipoId, subtipoId: p.subtipoId, competencia: null }, p.token);
+      await idb(db, 'readwrite', (s) => s.delete(p.id));
+      enviados++;
+    } catch (err) {
+      if (!navigator.onLine) throw err; // sem rede: o navegador tenta de novo depois
+    }
+  }
+  const janelas = await self.clients.matchAll({ type: 'window' });
+  janelas.forEach((c) => c.postMessage({ tipo: 'envios-sincronizados', enviados }));
+}

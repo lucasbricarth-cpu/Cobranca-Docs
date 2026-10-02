@@ -24,6 +24,9 @@ export interface NovoEnvio {
   loginId?: string | null;
   usuarioId?: string | null;
   whatsappNumero?: string | null;
+  /** Sugestão já calculada na análise do envio (evita classificar duas vezes). */
+  sugestaoPrevia?: unknown;
+  cnpjsPrevios?: string[];
 }
 export interface DocumentoRegistrado { id: string; duplicado: boolean; status: string; empresa_id: string | null }
 
@@ -48,11 +51,12 @@ export async function registrarEnvio(e: NovoEnvio): Promise<DocumentoRegistrado>
   try {
     await um(
       `INSERT INTO documentos (id, empresa_id, tipo_id, subtipo_id, competencia, item_id, com_pedido, sensivel, status, nome_original, mime, extensao,
-                               tamanho, hash_sha256, chave, origem, enviado_por_login, enviado_por_usuario, whatsapp_numero)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'processando', $9, 'application/octet-stream', $10, $11, $12, $13, $14, $15, $16, $17)`,
+                               tamanho, hash_sha256, chave, origem, enviado_por_login, enviado_por_usuario, whatsapp_numero, sugestao, cnpjs_lidos)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'processando', $9, 'application/octet-stream', $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)`,
       [id, e.empresaId, e.tipoId ?? null, e.subtipoId ?? null, e.competencia ?? null, e.itemId ?? null, Boolean(e.comPedido ?? e.itemId),
         Boolean(e.sensivel), e.nomeOriginal.slice(0, 250), ext, e.dados.length, hash, chave, e.origem,
-        e.loginId ?? null, e.usuarioId ?? null, e.whatsappNumero ?? null]);
+        e.loginId ?? null, e.usuarioId ?? null, e.whatsappNumero ?? null,
+        e.sugestaoPrevia ? JSON.stringify({ previa: e.sugestaoPrevia }) : null, e.cnpjsPrevios?.length ? e.cnpjsPrevios : null]);
   } catch (err) {
     // Corrida com outro envio do mesmo arquivo: o índice único segura; devolve o que já existe.
     await armazenamento().apagar(chave);
