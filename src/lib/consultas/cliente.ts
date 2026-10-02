@@ -25,3 +25,16 @@ export async function checklistDoCliente(empresaId: string): Promise<{ competenc
   }
   return { competencia, doMes, outros };
 }
+
+/** Item visto pelo cliente: só se a empresa estiver nos vínculos do login (senão, como se não existisse). */
+export async function itemParaCliente(empresasDoLogin: { id: string }[], itemId: string) {
+  const i = await um<Record<string, unknown>>(
+    `SELECT i.id, i.empresa_id, i.tipo_id, i.subtipo_id, i.status, to_char(i.prazo, 'YYYY-MM-DD') AS prazo, to_char(i.competencia, 'YYYY-MM-DD') AS competencia,
+            i.motivo_refazer, i.mensagem, t.nome AS tipo_nome, t.sensivel, e.nome AS empresa,
+            s.nome AS sub_nome, s.cartao_final, s.cartao_emissor, cb.codigo_banco, cb.nome_banco, cb.final AS conta_final
+     FROM itens_pedido i JOIN tipos_documento t ON t.id = i.tipo_id JOIN empresas e ON e.id = i.empresa_id
+     LEFT JOIN subtipos s ON s.id = i.subtipo_id LEFT JOIN contas_bancarias cb ON cb.id = s.conta_bancaria_id
+     WHERE i.id = $1`, [itemId]);
+  if (!i || !empresasDoLogin.some((e) => e.id === i.empresa_id)) return null;
+  return i;
+}

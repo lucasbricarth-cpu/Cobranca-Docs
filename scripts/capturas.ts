@@ -32,7 +32,9 @@ async function contextos(browser: Browser) {
 
 async function entrar(ctx: BrowserContext, como: string, destino: string) {
   const p = await ctx.newPage();
-  await p.goto(`${BASE}/api/dev/entrar?como=${encodeURIComponent(como)}&destino=${encodeURIComponent(destino)}`, { waitUntil: 'networkidle' });
+  // 'load' e não 'networkidle': a página de avisos fala com o serviço de push do navegador, que pode nunca responder aqui.
+  await p.goto(`${BASE}/api/dev/entrar?como=${encodeURIComponent(como)}&destino=${encodeURIComponent(destino)}`, { waitUntil: 'load' });
+  await p.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => undefined);
   return p;
 }
 async function foto(p: import('playwright').Page, nome: string, full = false) {
@@ -48,7 +50,8 @@ async function paleta(p: import('playwright').Page, id: string, escuro = true) {
     localStorage.setItem('theme', escuro ? 'dark' : 'light');
     await fetch('/api/preferencias/estetica', { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ prefs }) });
   }, [id, escuro] as [string, boolean]);
-  await p.goto(p.url(), { waitUntil: 'networkidle' });
+  await p.goto(p.url(), { waitUntil: 'load' });
+  await p.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => undefined);
 }
 
 // Semente de documentos de demonstração (idempotente).
@@ -76,6 +79,10 @@ async function resolver(rota: string): Promise<string> {
     const d = await banco.query<{ id: string }>('SELECT id FROM tipos_documento WHERE nome ILIKE $1 LIMIT 1', [`${t[1]}%`]);
     r = r.replace(t[0], d.rows[0]?.id ?? 'x');
   }
+  if (r.includes('{item}')) {
+    const d = await banco.query<{ id: string }>(`SELECT i.id FROM itens_pedido i JOIN empresas e ON e.id = i.empresa_id WHERE e.codi_emp = 101 AND i.status = 'refazer' LIMIT 1`);
+    r = r.replace('{item}', d.rows[0]?.id ?? 'x');
+  }
   if (r.includes('{pedido}')) {
     const d = await banco.query<{ id: string }>('SELECT id FROM pedidos ORDER BY criado_em DESC LIMIT 1');
     r = r.replace('{pedido}', d.rows[0]?.id ?? 'x');
@@ -88,7 +95,7 @@ async function resolver(rota: string): Promise<string> {
   }
   return r;
 }
-const nomeDaRota = (rota: string) => rota.replace(/\{(\d+)\}/g, 'e$1').replace(/\{doc:[^}]+\}/g, 'doc').replace(/\{tipo:([^}]+)\}/g, '$1').replace('{pedido}', 'pedido').replace(/ /g, '_').replace(/[?&=]/g, '-').replace(/\//g, '-');
+const nomeDaRota = (rota: string) => rota.replace(/\{(\d+)\}/g, 'e$1').replace(/\{doc:[^}]+\}/g, 'doc').replace(/\{tipo:([^}]+)\}/g, '$1').replace('{pedido}', 'pedido').replace('{item}', 'item').replace(/ /g, '_').replace(/[?&=]/g, '-').replace(/\//g, '-');
 const PAGINAS_FUNC = (process.env.CAPTURAS_FUNC || '/inicio,/ajustes/estetica').split(',');
 const PAGINAS_CLI = (process.env.CAPTURAS_CLI || '/cliente').split(',');
 const ADMIN = 'ana@escritorio.com.br';

@@ -13,7 +13,7 @@ function base64ParaUint8(b64: string): Uint8Array {
   return Uint8Array.from([...raw].map((c) => c.charCodeAt(0)));
 }
 
-export function AtivarAvisos() {
+export function AtivarAvisos({ paraFuncionario = false }: { paraFuncionario?: boolean }) {
   const [estado, setEstado] = useState<'carregando' | 'sem-suporte' | 'iphone-instalar' | 'ativo' | 'inativo' | 'negado'>('carregando');
   useEffect(() => {
     (async () => {
@@ -40,10 +40,10 @@ export function AtivarAvisos() {
 
   const texto = {
     carregando: '…',
-    'sem-suporte': 'Este navegador não recebe avisos. Você recebe os pedidos por e-mail.',
+    'sem-suporte': paraFuncionario ? 'Este navegador não recebe avisos.' : 'Este navegador não recebe avisos. Você recebe os pedidos por e-mail.',
     'iphone-instalar': 'No iPhone, os avisos só funcionam com o app na Tela de Início.',
     ativo: 'Avisos ativos neste aparelho.',
-    inativo: 'Receba os pedidos do escritório na hora, neste aparelho.',
+    inativo: paraFuncionario ? 'Receba um aviso neste aparelho (celular ou computador) quando chegar arquivo para conferir nas suas empresas.' : 'Receba os pedidos do escritório na hora, neste aparelho.',
     negado: 'Os avisos estão bloqueados nas configurações do navegador. Você recebe por e-mail.',
   }[estado];
 

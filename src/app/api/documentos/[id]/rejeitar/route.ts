@@ -13,7 +13,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     await carregarComPermissao(s, params.id);
     const { motivo } = z.object({ motivo: z.string().min(3).max(500) }).parse(await req.json());
     const r = await rejeitarDocumento(params.id, motivo, s);
-    if (r.itemId) await aoRejeitar(r.itemId);
+    if (r.itemId) await aoRejeitar(r.itemId, params.id);
     return ok();
   });
 }
