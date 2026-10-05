@@ -9,13 +9,20 @@ Stack: Next.js 14 (App Router), TypeScript, Tailwind, PostgreSQL. Estética: Gla
 
 ## Rodar
 
+Requisitos: **Node.js 22.6 ou mais novo** (os scripts usam `--experimental-strip-types`) e **PostgreSQL 15 ou mais novo** (as tabelas usam `UNIQUE NULLS NOT DISTINCT`).
+
 ```bash
 cp .env.example .env          # preencha os segredos (nunca no repositório)
 npm install                   # copia OpenCV.js e pdf.js para public/
 npm run migrar                # aplica migrations/*.sql
-npm run semear                # dados de demonstração (opcional)
+npm run semear                # escritório, empresas e logins de demonstração (opcional)
 npm run dev
 ```
+
+Com `DEV_LOGIN=1` no `.env` (só em localhost):
+
+- **Entrar sem e-mail:** `/api/dev/entrar?como=ana@escritorio.com.br` (Admin) ou `?como=carlos@padaria.com.br` (cliente).
+- **Documentos e pedidos de demonstração:** com o `npm run dev` rodando, `POST /api/dev/semear`. No Windows: `Invoke-RestMethod -Method Post http://localhost:3000/api/dev/semear`.
 
 ## Jobs (agendar no servidor)
 

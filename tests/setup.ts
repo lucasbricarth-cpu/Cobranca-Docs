@@ -1,7 +1,9 @@
 import { carregarEnv } from '../scripts/env.ts';
 
 carregarEnv();
+// Os testes nunca falam com serviços de verdade, sejam quais forem as chaves do .env de quem roda.
 process.env.EMAIL = 'log';
+process.env.PUSH = 'log';
 process.env.ARMAZENAMENTO = 'memoria';
 process.env.IA = process.env.IA_TESTE ?? 'simulada';
 process.env.WHATSAPP = 'simulado';
